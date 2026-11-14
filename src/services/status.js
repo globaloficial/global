@@ -4,9 +4,8 @@ const { log } = require('../util/logger');
 
 const STATUS_ROTATIVOS = [
   async () => 'Globalmente conversando',
-  async () => `Estou em ${await Guild.countDocuments({ canalId: { $ne: null } })} comunidades`,
-  async () => 'Alguma dúvida? Me mencione :D',
-  async () => 'Alguém realmente lê isso?'
+  async () => `Em ${await Guild.countDocuments({ canalId: { $ne: null } })} comunidades`,
+  async () => '@global | g.ajuda'
 ];
 
 let intervaloStatus = null;
