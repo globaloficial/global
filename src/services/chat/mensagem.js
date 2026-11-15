@@ -140,4 +140,4 @@ function montarEmbedGlobal(message, info) {
   return embed;
 }
 
-module.exports = { infoMensagem, montarEmbedGlobal, montarPayloadWebhook, montarCorpoEdicaoWebhook };
+module.exports = { infoMensagem, montarEmbedGlobal, montarPayloadWebhook, montarCorpoEdicaoWebhook, ObterIconeServidor };
