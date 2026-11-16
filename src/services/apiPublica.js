@@ -3,14 +3,21 @@ const { STATS_PORT, STATS_ORIGEM } = require('../config');
 const { obterEstatisticas } = require('./estatisticas');
 const { log } = require('../util/logger');
 
-const CABECALHOS = {
-  'Access-Control-Allow-Origin': STATS_ORIGEM,
-  'Cache-Control': 'public, max-age=30',
-  'Content-Type': 'application/json; charset=utf-8'
-};
+const ORIGENS = STATS_ORIGEM.split(',').map((origem) => origem.trim()).filter(Boolean);
 
-function responder(res, status, corpo) {
-  res.writeHead(status, CABECALHOS);
+function cabecalhos(req) {
+  const origem = req.headers.origin;
+
+  return {
+    'Access-Control-Allow-Origin': ORIGENS.includes(origem) ? origem : ORIGENS[0],
+    'Vary': 'Origin',
+    'Cache-Control': 'public, max-age=30',
+    'Content-Type': 'application/json; charset=utf-8'
+  };
+}
+
+function responder(req, res, status, corpo) {
+  res.writeHead(status, cabecalhos(req));
   res.end(JSON.stringify(corpo));
 }
 
@@ -18,15 +25,15 @@ async function tratarRequisicao(req, res) {
   const caminho = req.url.split('?')[0];
 
   if (req.method !== 'GET' || caminho !== '/stats') {
-    responder(res, 404, { erro: 'Não encontrado' });
+    responder(req, res, 404, { erro: 'Não encontrado' });
     return;
   }
 
   try {
-    responder(res, 200, await obterEstatisticas());
+    responder(req, res, 200, await obterEstatisticas());
   } catch (e) {
     log.error('API', 'Falha ao gerar as estatísticas', e);
-    responder(res, 500, { erro: 'Estatísticas indisponíveis' });
+    responder(req, res, 500, { erro: 'Estatísticas indisponíveis' });
   }
 }
 
