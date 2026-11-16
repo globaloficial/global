@@ -1,6 +1,6 @@
+process.env.MODO_ENVIO = 'webhook';
 process.env.ENTREGA_REQS_POR_SEGUNDO = '35';
 process.env.ENTREGA_CONCORRENCIA = '10';
-
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const H = require('./harness/falsos');
@@ -73,6 +73,7 @@ test('replies: resolve as cópias do grupo em lote (poucas queries, não uma por
 test('cache de destinos: 1 consulta para várias mensagens e invalida quando a config muda', async (t) => {
   const api = await novoCenario({ globalPorSegundo: 1000 }, 20);
   await Guild.updateOne({ guildId: 'g1' }, { pausado: false });
+  await retransmitirMensagemGlobal(H.mensagemDe({ guildIdx: 1, conteudo: 'aquecimento dos webhooks' }));
   H.consultas.clear();
 
   for (let i = 0; i < 5; i++) {
@@ -87,7 +88,7 @@ test('cache de destinos: 1 consulta para várias mensagens e invalida quando a c
   assert.equal(consultasDe('Guild.find'), 2, 'depois de alterar a config deve recarregar');
   assert.equal(H.dados.get('Guild').find((g) => g.guildId === 'g5').pausado, true);
   const noC5 = [...api.mensagens.values()].filter((m) => m.canalId === 'c5').length;
-  assert.equal(noC5, 5, 'g5 recebeu as 5 primeiras e não a que veio depois da pausa');
+  assert.equal(noC5, 6, 'g5 recebeu o aquecimento e as 5 primeiras, mas não a que veio depois da pausa');
 });
 
 test('apagar grupo: só remove o vínculo de quem foi resolvido; falha transitória mantém referência', async (t) => {

@@ -1,7 +1,8 @@
 process.env.ENTREGA_REQS_POR_SEGUNDO = '35';
 process.env.ENTREGA_CONCORRENCIA = '10';
 process.env.MODO_ENVIO = 'webhook';
-
+process.env.ENTREGA_REQS_POR_SEGUNDO = '35';
+process.env.ENTREGA_CONCORRENCIA = '10';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const H = require('./harness/falsos');
@@ -51,7 +52,7 @@ test('envia pelo webhook com nome, rodapé e uma cópia por servidor', async () 
   assert.equal(api.webhooksCriados, 4);
   for (const c of copias) {
     assert.match(c.opcoes.username, /^User \d+ \(@user\d+#0001\)$/);
-    assert.match(c.opcoes.content, /^olá pessoal\n-# Servidor g1 — \[Ver perfil\]\(https:\/\/web\.fluxer\.app\/users\/u\d+\)$/);
+    assert.match(c.opcoes.content, /^olá pessoal\n-# Servidor g1 — \[Ver perfil\]\(<https:\/\/web\.fluxer\.app\/users\/u\d+>\)$/);
     assert.deepEqual(c.opcoes.allowedMentions, { parse: [] });
   }
   const vinculos = H.dados.get('MensagemGlobal').filter((l) => l.msgId !== msg.id);
@@ -166,26 +167,38 @@ test('429 durante envio por webhook é reenviado sem perder nem duplicar', async
   for (const [, n] of api.envios) assert.equal(n, 1);
 });
 
-test('sem permissão para criar webhook, o servidor recebe o embed normal', async () => {
+test('cada servidor usa o próprio webhook', async () => {
+  const api = await novoCenario(6);
+  await retransmitirMensagemGlobal(H.mensagemDe({ guildIdx: 1, conteudo: 'um webhook por servidor' }));
+
+  const copias = api.copiasVivas();
+  assert.equal(copias.length, 5);
+  assert.equal(new Set(copias.map((m) => m.webhookId)).size, 5);
+});
+
+test('cada servidor escolhe o próprio modo: g3 em embed, os outros em webhook', async () => {
+  const api = await novoCenario(3);
+  await Guild.updateOne({ guildId: 'g3' }, { modoEnvio: 'embed' });
+  await retransmitirMensagemGlobal(H.mensagemDe({ guildIdx: 1, conteudo: 'modo por servidor' }));
+
+  const vivas = api.copiasVivas();
+  assert.equal(vivas.length, 2);
+  assert.equal(vivas.filter((m) => m.webhookId).length, 1);
+  const embed = vivas.find((m) => !m.webhookId);
+  assert.equal(embed.opcoes.embeds.length, 1);
+});
+
+test('sem permissão para criar webhook, nada é entregue e o canal é avisado uma única vez', async () => {
   const api = await novoCenario(3);
   api.webhooks.clear();
   api.criacaoWebhookFalha = true;
   await retransmitirMensagemGlobal(H.mensagemDe({ guildIdx: 1, conteudo: 'sem webhook' }));
+  await retransmitirMensagemGlobal(H.mensagemDe({ guildIdx: 1, conteudo: 'sem webhook de novo' }));
 
-  const copias = api.copiasVivas();
-  assert.equal(copias.length, 2);
-  assert.ok(copias.every((m) => !m.webhookId && m.opcoes.embeds));
-});
-
-test('cada servidor escolhe o próprio modo: g5 em embed, g6 em webhook', async () => {
-  const api = await novoCenario(6);
-  await Guild.updateOne({ guildId: 'g5' }, { modoEnvio: 'embed' });
-  await retransmitirMensagemGlobal(H.mensagemDe({ guildIdx: 1, conteudo: 'modo por servidor' }));
-
-  const noG5 = api.copiasVivas().filter((m) => m.canalId === 'c5');
-  const noG6 = api.copiasVivas().filter((m) => m.canalId === 'c6');
-  assert.equal(noG5.length, 1);
-  assert.ok(noG5[0].opcoes.embeds && !noG5[0].webhookId);
-  assert.equal(noG6.length, 1);
-  assert.ok(noG6[0].webhookId);
+  const mensagens = [...api.mensagens.values()];
+  assert.ok(mensagens.every((m) => !m.webhookId));
+  assert.ok(mensagens.every((m) => !(m.opcoes && m.opcoes.embeds)));
+  const avisos = mensagens.filter((m) => m.opcoes && /Gerenciar Webhooks/.test(m.opcoes.content || ''));
+  assert.deepEqual(avisos.map((m) => m.canalId).sort(), ['c2', 'c3']);
+  assert.ok(H.dados.get('Guild').every((g) => g.canalId));
 });
