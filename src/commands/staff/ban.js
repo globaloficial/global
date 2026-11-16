@@ -4,6 +4,8 @@ const User = require('../../models/User');
 const Bloqueio = require('../../models/Bloqueio');
 const { extrairId } = require('../../util/ids');
 const { log } = require('../../util/logger');
+const { PREFIXO } = require('../../config');
+const { sucesso, erro, usoIncorreto } = require('../../util/respostas');
 const { tipoBloqueio, negarSeNaoStaff } = require('./_comum');
 
 module.exports = {
@@ -17,21 +19,21 @@ module.exports = {
     const tipo = tipoBloqueio(args[0]);
     const alvoId = extrairId(args[1]);
     if (!tipo || !alvoId) {
-      await message.reply('<:information2fill:1562606683371339784> Uso correto: `g.ban usuario <@usuario|ID> [motivo]` ou `g.ban servidor <ID> [motivo]`');
+      await message.reply(usoIncorreto(message, PREFIXO, 'Vou me acalmar pra não disparar um ban à toa.', `${PREFIXO}ban usuario/servidor <@usuario ou ID> [motivo]`));
       return;
     }
 
     if (tipo === 'usuario') {
       if (alvoId === DONO_ID || alvoId === client.user.id || alvoId === String(message.author.id)) {
-        await message.reply('<:closecirclefill:1562606683371339786> Você não pode bloquear esse usuário.');
+        await message.reply(erro('Isso não vai rolar', 'Você não pode bloquear esse usuário.'));
         return;
       }
       if (message.author.id !== DONO_ID && await User.exists({ userId: alvoId, staff: true })) {
-        await message.reply('<:closecirclefill:1562606683371339786> Somente o desenvolvedor pode bloquear um staff.');
+        await message.reply(erro('Só o chefe', 'Somente o desenvolvedor do Global pode bloquear um staff.'));
         return;
       }
     } else if (alvoId === SUPORTE_GUILD_ID) {
-      await message.reply('<:closecirclefill:1562606683371339786> Você não pode bloquear o servidor de suporte.');
+      await message.reply(erro('Esse não', 'Você não pode bloquear o servidor de suporte.'));
       return;
     }
 
@@ -43,9 +45,11 @@ module.exports = {
     );
     log.ok('BAN', `${tipo} ${alvoId} bloqueado por ${message.author.id}${motivo ? ` | ${motivo}` : ''}`);
 
-    await message.reply(
-      `<:checkboxcirclefill:1562606683371339777> ${tipo === 'usuario' ? `Usuário <@${alvoId}>` : `Servidor \`${alvoId}\``} foi **bloqueado** do chat global.` +
-      (motivo ? `\n-# Motivo: ${motivo}` : '')
-    );
+    await message.reply(sucesso(
+      tipo === 'usuario' ? 'Usuário bloqueado' : 'Servidor bloqueado',
+      tipo === 'usuario'
+        ? `<@${alvoId}> não manda mais mensagens no chat global.\n**Motivo:** ${motivo || 'não informado'}`
+        : `O servidor \`${alvoId}\` foi tirado do chat global.\n**Motivo:** ${motivo || 'não informado'}`
+    ));
   }
 };

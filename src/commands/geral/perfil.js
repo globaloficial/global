@@ -1,12 +1,13 @@
 const { client } = require('../../lib/client');
+const { discordClient } = require('../../lib/discordClient');
 const { COOLDOWN_PERFIL } = require('../../config');
 const User = require('../../models/User');
 const { badgesDoUsuario, badgeAtiva } = require('../../services/badges');
 const { totalMensagens, servidorMaisAtivo } = require('../../services/perfilDados');
 const { gerarCardPerfil } = require('../../util/render/cardPerfil');
-const { emojis } = require('../../util/emojis');
 const { extrairId } = require('../../util/ids');
 const { log } = require('../../util/logger');
+const { erro, espera } = require('../../util/respostas');
 
 const cooldownPerfil = new Map();
 
@@ -18,7 +19,7 @@ async function resolverAlvo(message, args) {
   if (!id) return message.author;
 
   try {
-    return await client.users.fetch(id);
+    return await (message.plataforma === 'discord' ? discordClient : client).users.fetch(id);
   } catch {
     return null;
   }
@@ -32,14 +33,14 @@ module.exports = {
   async execute(message, args) {
     const ultimo = cooldownPerfil.get(message.author.id);
     if (ultimo && Date.now() - ultimo < COOLDOWN_PERFIL) {
-      await message.reply('<:forbidline:1562606683371339778> Aguarde um pouco antes de pedir outro perfil.');
+      await message.reply(espera('Calma, tá com pressa?', 'Aguarde alguns segundos antes de pedir outro perfil, o Global também precisa respirar.'));
       return;
     }
     cooldownPerfil.set(message.author.id, Date.now());
 
     const alvo = await resolverAlvo(message, args);
     if (!alvo) {
-      await message.reply(`${emojis.error} Não encontrei esse usuário.`);
+      await message.reply(erro('Quem é esse?', 'Não encontrei nenhum usuário com essa menção ou ID, confere se digitou certinho e tenta de novo.'));
       return;
     }
 
@@ -51,7 +52,7 @@ module.exports = {
       ]);
 
       const servidor = topo
-        ? client.guilds.get(topo.guildId)?.name ?? 'Servidor desconhecido'
+        ? (client.guilds.get(topo.guildId)?.name ?? discordClient.guilds.cache.get(topo.guildId)?.name ?? 'Servidor desconhecido')
         : 'Sem atividade recente';
 
       const card = await gerarCardPerfil({
@@ -69,7 +70,7 @@ module.exports = {
       await message.reply({ files: [{ name: `perfil-${alvo.id}.png`, data: card }] });
     } catch (e) {
       log.error('PERFIL', `Falha ao gerar o perfil de ${alvo.id}`, e);
-      await message.reply(`${emojis.error} Não consegui gerar o perfil agora.`);
+      await message.reply(erro('Deu ruim no card', 'Não consegui gerar o perfil agora, tente de novo daqui a pouco.'));
     }
   }
 };

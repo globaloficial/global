@@ -1,7 +1,36 @@
 const { EmbedBuilder } = require('@fluxerjs/core');
-const { DONO_ID, MUBI_ID } = require('../../config');
+const { DONO_ID, MUBI_ID, PREFIXO } = require('../../config');
 const Guild = require('../../models/Guild');
-const MensagemGlobal = require('../../models/MensagemGlobal');
+const { EMOJI } = require('../../util/respostas');
+const { discordClient } = require('../../lib/discordClient');
+
+const CONTRIBUIDORES = {
+  fluxer: [
+    { id: DONO_ID, nome: 'xMqR', funcao: 'Head Dev' },
+    { id: MUBI_ID, nome: 'Mubi', funcao: 'Dev' },
+    { id: '1547741588283723777', nome: 'supreminhogamer', funcao: 'Code Contributor' },
+    { id: '1473035366593507373', nome: 'joão', funcao: 'Financial Contributor' }
+  ],
+  discord: [
+    { id: '1035619333730205846', nome: 'xMqR', funcao: 'Head Dev' },
+    { id: '1160426569156808734', nome: 'Mubi', funcao: 'Dev' },
+    { id: '850162520391548969', nome: 'supreminhogamer', funcao: 'Code Contributor' },
+    { id: '1293531630694039563', nome: 'joão', funcao: 'Financial Contributor' }
+  ]
+};
+
+function servidoresNoDiscord() {
+  try {
+    return discordClient.isReady() ? discordClient.guilds.cache.size : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function linhaDe(contribuidor) {
+  const nome = contribuidor.id ? `<@${contribuidor.id}>` : `**@${contribuidor.nome}**`;
+  return `${nome} (${contribuidor.funcao})`;
+}
 
 module.exports = {
   name: 'botinfo',
@@ -9,34 +38,33 @@ module.exports = {
   description: 'Envia as informações principais do Global.',
 
   async execute(message) {
-    const [totalServidores, autores] = await Promise.all([
-      Guild.countDocuments({ canalId: { $ne: null } }),
-      MensagemGlobal.distinct('autorId')
-    ]);
-    const ativos = autores.length;
-    const totalUsuarios = ativos > 0 ? ativos : 1;
+    const plataforma = message.plataforma === 'discord' ? 'discord' : 'fluxer';
+    const comunidades = await Guild.countDocuments({ canalId: { $ne: null } });
+    const noDiscord = servidoresNoDiscord();
+    const dados = [
+      'Linguagem: `JavaScript (Node.js)`',
+      'Bibliotecas: `@fluxerjs/core` e `discord.js`',
+      'Banco de dados: `MongoDB`',
+      `Prefixo: \`${PREFIXO}\``,
+      'Status: `Operacional`'
+    ];
+    const estatisticas = `Presente em **${comunidades}** comunidades${noDiscord === null ? '' : `, sendo **${noDiscord}** servidores no Discord`}, veja outras estatísticas em globalbot.site/estatisticas`;
 
-    try {
-      const embedInfo = new EmbedBuilder()
-        .setTitle('<:earthline1:1562606683371339780> Bot-info do Global')
-        .setDescription('-# Conectando fronteiras, unindo comunidades e aproximando pessoas através de um ecossistema global fluido.')
-        .setColor(0x0330EF)
-        .addFields(
-          { name: '<:information2fill:1562606683371339784> Desenvolvedor', value: `<@${DONO_ID}> (\`xMqR\`)\n<@${MUBI_ID}> (\`Mubi\`)`, inline: true },
-          { name: '<:brushaifill:1562606683371339785> Estatísticas:', value: `**${totalServidores}** Servidores\n**${totalUsuarios}+** Usuários ativos`, inline: true },
-          { name: '<:checkboxcirclefill:1562606683371339777> Dados Técnicos', value: '• **Linguagem:** JavaScript (Node.js)\n• **Biblioteca:** `@fluxerjs/core`\n• **Banco de dados:** MongoDB\n• **Prefixo:** `g.`\n• **Status:** Operacional', inline: false }
-        );
-
-      await message.reply({ embeds: [embedInfo] });
-    } catch (e) {
-      await message.reply(
-        '🌐 **Informações do Global**\n\n' +
-        `• **Desenvolvedor:** xMqR, Mubi\n` +
-        `• **Servidores Conectados:** ${totalServidores}\n` +
-        `• **Usuários Ativos:** ${totalUsuarios}+\n` +
-        `• **Linguagem/Biblioteca:** Node.js / @fluxerjs/core\n` +
-        `• **Prefixo:** \`g.\``
+    const embed = new EmbedBuilder()
+      .setColor(0x0330EF)
+      .setTitle(`${EMOJI.mundo} Informações do Global`)
+      .setDescription('O Global é um bot do Fluxer e do Discord criado para o público brasileiro. Ele conecta comunidades em um chat global: o que alguém escreve no canal conectado de um servidor é retransmitido para os canais conectados dos outros servidores.')
+      .addFields(
+        { name: `${EMOJI.coracao} Contribuidores:`, value: CONTRIBUIDORES[plataforma].map(linhaDe).join('\n'), inline: true },
+        { name: `${EMOJI.janela} Estatísticas`, value: estatisticas, inline: true },
+        { name: 'Saiba mais em:', value: 'https://globalbot.site/', inline: true },
+        {
+          name: `${EMOJI.terminal} Dados Técnicos:`,
+          value: dados.join('\n'),
+          inline: false
+        }
       );
-    }
+
+    await message.reply({ embeds: [embed] });
   }
 };

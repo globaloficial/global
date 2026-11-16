@@ -1,6 +1,8 @@
+const { EmbedBuilder } = require('@fluxerjs/core');
 const { client } = require('../../lib/client');
 const Guild = require('../../models/Guild');
 const Bloqueio = require('../../models/Bloqueio');
+const { EMOJI, info } = require('../../util/respostas');
 const { negarSeNaoStaff } = require('./_comum');
 
 module.exports = {
@@ -17,20 +19,24 @@ module.exports = {
     ]);
 
     if (lista.length === 0) {
-      await message.reply('<:information2fill:1562606683371339784> Nenhum servidor conectado.');
+      await message.reply(info('Ninguém por aqui', 'Nenhum servidor está conectado ao Global agora, que silêncio, né?'));
       return;
     }
 
     const bloqueadosSet = new Set(bloqueados);
-    let texto = lista.map((c) => {
+    let texto = lista.map((c, i) => {
       const g = client.guilds.get(c.guildId);
       const nome = g && g.name ? g.name : 'Desconhecido';
-      return `• **${nome}** (\`${c.guildId}\`)` +
-        (c.pausado ? ' ⏸️ pausado' : '') +
-        (bloqueadosSet.has(c.guildId) ? ' 🚫 bloqueado' : '');
+      const estado = bloqueadosSet.has(c.guildId) ? 'Conexão Global (bloqueado)' : c.pausado ? 'Conexão Global (pausada)' : 'Conexão Global';
+      return `**${i + 1}.** ${nome}:\n\`${estado}\``;
     }).join('\n');
-    if (texto.length > 1900) texto = texto.slice(0, 1900) + '\n…';
+    if (texto.length > 3800) texto = `${texto.slice(0, 3800)}\n…`;
 
-    await message.reply(`<:earthline1:1562606683371339780> **Servidores conectados (${lista.length})**\n${texto}`);
+    const embed = new EmbedBuilder()
+      .setColor(0x0330EF)
+      .setTitle(`${EMOJI.mundo} Comunidades Conectadas`)
+      .setDescription(texto);
+
+    await message.reply({ embeds: [embed] });
   }
 };

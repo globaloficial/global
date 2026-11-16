@@ -1,34 +1,36 @@
-const Guild = require('../../models/Guild');
-const { limparFalhasDestino } = require('../../services/destinos');
-const { idDoServidor } = require('../../util/ids');
 const { log, descreverContexto } = require('../../util/logger');
 const { temPermissaoConfig } = require('../../services/permissoes');
+const { conexaoDoCanal, desligar } = require('../../services/conexoes');
+const { PREFIXO } = require('../../config');
+const { sucesso, erroSimples, SEM_PERMISSAO } = require('../../util/respostas');
 
 module.exports = {
   name: 'desconectar',
   aliases: [],
-  description: 'Desconecta este servidor do chat global.',
+  description: 'Desconecta a conexão deste canal.',
 
   async execute(message) {
-    const guildId = idDoServidor(message);
-    if (!guildId) return;
+    if (!message.channel) return;
 
     if (!(await temPermissaoConfig(message))) {
-      await message.reply('<:closecirclefill:1562606683371339786> Você precisa da permissão **Gerenciar Canais** (ou ser o desenvolvedor do Global) para usar este comando.');
+      await message.reply(SEM_PERMISSAO.canais);
       return;
     }
 
-    const gId = String(guildId);
-    const r = await Guild.updateOne(
-      { guildId: gId, canalId: { $ne: null } },
-      { canalId: null, pausado: false, filtrarPalavroes: true, filtrarLinks: false }
-    );
-    limparFalhasDestino(gId);
-    if (r.matchedCount > 0) {
-      log.ok('DESCONECTAR', `Servidor desconectado | ${descreverContexto(message)}`);
-      await message.reply('<:checkboxcirclefill:1562606683371339777> Este servidor foi desconectado do chat global.\n-# Use g.conectar no canal desejado para reconectar.');
-    } else {
-      await message.reply('<:information2fill:1562606683371339784> Este servidor não está conectado ao chat global.');
+    const conexao = await conexaoDoCanal(message);
+    if (!conexao) {
+      await message.reply(erroSimples(
+        'Eu vou desconectar o vento?',
+        `Este canal não possui **nenhuma** conexão ativa, que tal usar \`${PREFIXO}conectar\` para começar a conversar com pessoas ~~estranhas~~ legais?`
+      ));
+      return;
     }
+
+    await desligar(conexao);
+    log.ok('DESCONECTAR', `${conexao.nome} desconectada | ${descreverContexto(message)}`);
+    await message.reply(sucesso(
+      'Desconectado com sucesso',
+      `Desconectei a **${conexao.nome}** deste canal (<#${message.channel.id}>) agora você pode enviar mensagens sem se preocupar em passar vergonha em todo o bot.`
+    ));
   }
 };
