@@ -1,6 +1,7 @@
 const http = require('http');
 const { STATS_PORT, STATS_ORIGEM } = require('../config');
 const { obterEstatisticas } = require('./estatisticas');
+const { tratarRotaSuporte, ehRotaSuporte } = require('./suporte/rotas');
 const { log } = require('../util/logger');
 
 const ORIGENS = STATS_ORIGEM.split(',').map((origem) => origem.trim()).filter(Boolean);
@@ -22,9 +23,14 @@ function responder(req, res, status, corpo) {
 }
 
 async function tratarRequisicao(req, res) {
-  const caminho = req.url.split('?')[0];
+  const url = new URL(req.url, 'http://localhost');
 
-  if (req.method !== 'GET' || caminho !== '/stats') {
+  if (ehRotaSuporte(url.pathname)) {
+    await tratarRotaSuporte(req, res, url);
+    return;
+  }
+
+  if (req.method !== 'GET' || url.pathname !== '/stats') {
     responder(req, res, 404, { erro: 'Não encontrado' });
     return;
   }
