@@ -4,11 +4,14 @@ const { invalidarDestinos } = require('../lib/cacheDestinos');
 const guildSchema = new Schema(
   {
     guildId: { type: String, required: true, unique: true },
+    plataforma: { type: String, enum: ['fluxer', 'discord', null], default: null },
     canalId: { type: String, default: null },
     pausado: { type: Boolean, default: false },
     filtrarPalavroes: { type: Boolean, default: true },
     filtrarLinks: { type: Boolean, default: false },
     cor: { type: Number, default: null },
+    ocultarServidor: { type: Boolean, default: false },
+    ocultarPerfil: { type: Boolean, default: false },
     mostrarIcone: { type: Boolean, default: false },
     webhookId: { type: String, default: null },
     webhookToken: { type: String, default: null, select: false },
