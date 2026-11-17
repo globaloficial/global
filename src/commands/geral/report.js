@@ -3,6 +3,8 @@ const { client } = require('../../lib/client');
 const { CANAL_REPORTS, COOLDOWN_REPORT } = require('../../config');
 const MensagemGlobal = require('../../models/MensagemGlobal');
 const { log } = require('../../util/logger');
+const { PREFIXO } = require('../../config');
+const { sucesso, info, erro, espera } = require('../../util/respostas');
 
 const cooldownReports = new Map();
 
@@ -13,30 +15,30 @@ module.exports = {
 
   async execute(message, args) {
     if (!CANAL_REPORTS) {
-      await message.reply('<:information2fill:1562606683371339784> O sistema de denúncias ainda não está disponível.');
+      await message.reply(info('Denúncias em manutenção', 'O sistema de denúncias ainda não está disponível, tente de novo mais tarde.'));
       return;
     }
 
     const refId = message.messageReference ? message.messageReference.messageId : null;
     if (!refId) {
-      await message.reply('<:information2fill:1562606683371339784> **Responda** (reply) à mensagem que deseja denunciar usando `g.report [motivo]`.');
+      await message.reply(info('Responda a mensagem', `Para denunciar, **responda** (reply) à mensagem do chat global com \`${PREFIXO}report [motivo]\`.`, { abaixo: 'As denúncias são revisadas por um humano.' }));
       return;
     }
 
     const ultimo = cooldownReports.get(message.author.id);
     if (ultimo && Date.now() - ultimo < COOLDOWN_REPORT) {
-      await message.reply('<:forbidline:1562606683371339778> Aguarde um pouco antes de enviar outra denúncia.');
+      await message.reply(espera('Calma, tá com pressa?', 'Aguarde um pouco antes de enviar outra denúncia.'));
       return;
     }
 
     const r = await MensagemGlobal.findOne({ msgId: String(refId) }).lean();
     const origem = r ? await MensagemGlobal.findOne({ grupoId: r.grupoId, msgId: r.grupoId }).lean() : null;
     if (!r || !origem) {
-      await message.reply('<:closecirclefill:1562606683371339786> Só consigo denunciar mensagens recentes do chat global.');
+      await message.reply(erro('Essa já ficou pra trás', 'Só consigo denunciar mensagens **recentes** do chat global, essa já passou do prazo.'));
       return;
     }
     if (origem.autorId === String(message.author.id)) {
-      await message.reply('<:closecirclefill:1562606683371339786> Você não pode denunciar a si mesmo.');
+      await message.reply(erro('Denunciar você mesmo?', 'Você não pode denunciar a própria mensagem, se foi um engano é só apagá-la.'));
       return;
     }
 
@@ -87,10 +89,10 @@ module.exports = {
       await canal.send({ embeds: [embed] });
       cooldownReports.set(message.author.id, Date.now());
       log.ok('REPORT', `Denúncia de ${message.author.id} contra ${origem.autorId} (msg ${r.grupoId})`);
-      await message.reply('<:checkboxcirclefill:1562606683371339777> Denúncia enviada para a equipe do Global. Obrigado!');
+      await message.reply(sucesso('Denúncia enviada', 'Mandei a denúncia para a equipe do Global, obrigado por ajudar a manter o chat legal!'));
     } catch (e) {
       log.error('REPORT', 'Falha ao enviar denúncia', e);
-      await message.reply('<:closecirclefill:1562606683371339786> Não consegui enviar a denúncia agora. Tente novamente mais tarde.');
+      await message.reply(erro('Deu ruim na denúncia', 'Não consegui enviar a denúncia agora, tente novamente mais tarde.'));
     }
   }
 };

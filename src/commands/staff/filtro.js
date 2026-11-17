@@ -1,7 +1,10 @@
 const Palavra = require('../../models/Palavra');
 const { recarregarPalavras, acharPalavraProibida, totalEntradas } = require('../../services/filtros/palavras');
 const { normalizarTexto } = require('../../services/filtros/normalizacao');
+const { EmbedBuilder } = require('@fluxerjs/core');
 const { log } = require('../../util/logger');
+const { PREFIXO } = require('../../config');
+const { EMOJI, sucesso, info, erro, usoIncorreto } = require('../../util/respostas');
 const { negarSeNaoStaff } = require('./_comum');
 
 module.exports = {
@@ -18,7 +21,7 @@ module.exports = {
 
     if (['add', 'adicionar'].includes(sub) && palavra) {
       if (palavra.length < 2 || palavra.length > 50) {
-        await message.reply('<:closecirclefill:1562606683371339786> A palavra precisa ter entre 2 e 50 caracteres.');
+        await message.reply(erro('Tamanho estranho', 'A palavra precisa ter entre **2 e 50** caracteres.'));
         return;
       }
       await Palavra.updateOne(
@@ -28,7 +31,7 @@ module.exports = {
       );
       await recarregarPalavras();
       log.ok('FILTRO', `Palavra adicionada por ${message.author.id}`);
-      await message.reply('<:checkboxcirclefill:1562606683371339777> Palavra adicionada ao filtro.');
+      await message.reply(sucesso('Palavra adicionada', `A palavra \`${palavra}\` agora é bloqueada no Global.`));
       return;
     }
 
@@ -36,12 +39,11 @@ module.exports = {
       const r = await Palavra.deleteOne({ palavra, tipo: 'proibida' });
       await recarregarPalavras();
       await message.reply(r.deletedCount > 0
-        ? '<:checkboxcirclefill:1562606683371339777> Palavra removida do filtro.'
-        : '<:information2fill:1562606683371339784> Essa palavra não está na lista personalizada (se vier das listas de arquivos, use `g.filtro liberar`).');
+        ? sucesso('Palavra removida', `A palavra \`${palavra}\` saiu do filtro.`)
+        : info('Nada pra remover', `A palavra \`${palavra}\` não está na lista personalizada, se ela vem das listas de arquivos, use \`${PREFIXO}filtro liberar\`.`));
       return;
     }
 
-    // Exceção para palavras das listas que dão falso positivo
     if (['liberar', 'permitir'].includes(sub) && palavra) {
       await Palavra.updateOne(
         { palavra, tipo: 'liberada' },
@@ -49,7 +51,7 @@ module.exports = {
         { upsert: true }
       );
       await recarregarPalavras();
-      await message.reply('<:checkboxcirclefill:1562606683371339777> Palavra liberada (não será mais bloqueada).');
+      await message.reply(sucesso('Palavra liberada', `A palavra \`${palavra}\` não será mais bloqueada.`));
       return;
     }
 
@@ -57,22 +59,22 @@ module.exports = {
       const r = await Palavra.deleteOne({ palavra, tipo: 'liberada' });
       await recarregarPalavras();
       await message.reply(r.deletedCount > 0
-        ? '<:checkboxcirclefill:1562606683371339777> Exceção removida.'
-        : '<:information2fill:1562606683371339784> Essa palavra não estava liberada.');
+        ? sucesso('Exceção removida', `A palavra \`${palavra}\` voltou a ser bloqueada.`)
+        : info('Nada pra remover', `A palavra \`${palavra}\` não estava liberada.`));
       return;
     }
 
     if (['testar', 'test'].includes(sub) && resto) {
       const achado = acharPalavraProibida(resto);
       await message.reply(achado
-        ? `<:forbidline:1562606683371339778> Seria bloqueado. Bateu em: \`${achado}\``
-        : '<:checkboxcirclefill:1562606683371339777> Passaria pelo filtro.');
+        ? erro('Seria bloqueada', `O texto cai no filtro, bateu em \`${achado}\`.`, { abaixo: null })
+        : sucesso('Passaria batido', 'O texto não é bloqueado pelo filtro.'));
       return;
     }
 
     if (['recarregar', 'reload'].includes(sub)) {
       await recarregarPalavras();
-      await message.reply(`<:checkboxcirclefill:1562606683371339777> Filtro recarregado (${totalEntradas()} entradas).`);
+      await message.reply(sucesso('Filtro recarregado', `Recarreguei a lista de palavras, já está valendo (${totalEntradas()} entradas).`));
       return;
     }
 
@@ -80,18 +82,27 @@ module.exports = {
       const palavras = await Palavra.find().sort({ palavra: 1 }).lean();
       const custom = palavras.filter((p) => p.tipo === 'proibida').map((p) => p.palavra);
       const excecoes = palavras.filter((p) => p.tipo === 'liberada').map((p) => p.palavra);
-      let texto = custom.length ? custom.map((p) => `\`${p}\``).join(', ') : '*(nenhuma)*';
-      if (texto.length > 1500) texto = texto.slice(0, 1500) + '…';
-      await message.reply(
-        `<:information2fill:1562606683371339784> **Filtro** — ${totalEntradas()} entradas no total\n` +
-        `**Personalizadas (${custom.length}):** ${texto}\n` +
-        `**Liberadas (${excecoes.length}):** ${excecoes.length ? excecoes.map((p) => `\`${p}\``).join(', ') : '*(nenhuma)*'}`
-      );
+
+      if (custom.length === 0 && excecoes.length === 0) {
+        await message.reply(info('Filtro limpo', 'Nenhuma palavra foi adicionada ou liberada por aqui ainda.'));
+        return;
+      }
+
+      const lista = (itens) => {
+        const texto = itens.map((p, i) => `**${i + 1}.** \`${p}\``).join('\n');
+        return texto.length > 3800 ? `${texto.slice(0, 3800)}\n…` : texto;
+      };
+      const embeds = [];
+      if (custom.length) {
+        embeds.push(new EmbedBuilder().setColor(0x0330EF).setTitle(`${EMOJI.info} Palavras Bloqueadas`).setDescription(lista(custom)));
+      }
+      if (excecoes.length) {
+        embeds.push(new EmbedBuilder().setColor(0x0330EF).setTitle(`${EMOJI.info} Palavras Liberadas`).setDescription(lista(excecoes)));
+      }
+      await message.reply({ embeds });
       return;
     }
 
-    await message.reply(
-      '<:information2fill:1562606683371339784> Uso: `g.filtro add|remove <palavra>`, `liberar|desliberar <palavra>`, `testar <texto>`, `recarregar` ou `list`'
-    );
+    await message.reply(usoIncorreto(message, PREFIXO, 'Vou me acalmar pra não filtrar o dicionário inteiro.', `${PREFIXO}filtro add/remove/liberar/desliberar/testar/recarregar/list (palavra)`));
   }
 };

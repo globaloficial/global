@@ -1,6 +1,7 @@
 const { COR_PADRAO_ANUNCIO, ehDev, PREFIXO } = require('../../config');
 const { desativarAnuncio, agendarAnuncio, enviarAnuncioParaTodos } = require('../../services/anuncio');
 const { log, descreverContexto } = require('../../util/logger');
+const { sucesso, erro, SEM_PERMISSAO, usoIncorreto } = require('../../util/respostas');
 
 function tokenizarAnuncio(texto) {
   const tokens = [];
@@ -20,7 +21,7 @@ module.exports = {
   async execute(message) {
     if (!ehDev(message.author.id)) {
       log.warn('ANUNCIO', `Acesso negado para ${descreverContexto(message)}`);
-      await message.reply('<:closecirclefill:1562606683371339786> **Somente o desenvolvedor do Global** pode realizar essa ação.');
+      await message.reply(SEM_PERMISSAO.dono);
       return;
     }
 
@@ -30,21 +31,17 @@ module.exports = {
     if (tokens.length === 1 && ['parar', 'off', 'desativar'].includes(tokens[0].toLowerCase())) {
       await desativarAnuncio();
       log.ok('ANUNCIO', 'Anúncio automático desativado');
-      await message.reply('<:checkboxcirclefill:1562606683371339777> Anúncio automático desativado.');
+      await message.reply(sucesso('Anúncio desativado', 'O anúncio automático foi desligado.'));
       return;
     }
 
     if (tokens.length !== 6) {
-      await message.reply(
-        '<:information2fill:1562606683371339784> **Uso do anúncio**\n' +
-        '`g.anuncio "título" "descrição" #hex "autor" "footer" <mensagens>`\n\n' +
-        '• Use `#` sozinho em qualquer campo pra deixá-lo vazio (no hex, usa a cor padrão `#0330ef`).\n' +
-        '• Em `<mensagens>`: `#` envia na hora; um número envia a cada N mensagens do chat global.\n' +
-        '• Coloque textos com espaços entre **aspas**. Use `\\n` na descrição pra quebrar linha.\n' +
-        '• `g.anuncio parar` desativa o anúncio automático.\n\n' +
-        '**Exemplo:** `g.anuncio "Novidade" "Entrem no nosso servidor!" # "Equipe Global" # 25`' +
-        (tokens.length > 0 && tokens.length !== 6 ? `\n-# Recebi ${tokens.length} campos, mas preciso de 6.` : '')
-      );
+      await message.reply(usoIncorreto(
+        message,
+        PREFIXO,
+        'Vou me acalmar pra não anunciar o nada.',
+        `${PREFIXO}anuncio "título" "descrição" #hex "autor" "footer" <mensagens>`
+      ) + `\n-# Use # em um campo para deixá-lo vazio. Em <mensagens>, # envia agora e um número envia a cada N mensagens. ${PREFIXO}anuncio parar desativa.`);
       return;
     }
 
@@ -57,7 +54,7 @@ module.exports = {
     const footer = limpar(footerRaw);
 
     if (!titulo && !descricao && !autor && !footer) {
-      await message.reply('<:closecirclefill:1562606683371339786> O anúncio precisa ter pelo menos um texto (título, descrição, autor ou footer).');
+      await message.reply(erro('Anúncio vazio', 'O anúncio precisa ter pelo menos um texto: título, descrição, autor ou rodapé.'));
       return;
     }
 
@@ -65,7 +62,7 @@ module.exports = {
     if (hexRaw.trim() !== '#') {
       const hexStr = hexRaw.trim().replace('#', '');
       if (!/^[0-9a-fA-F]{6}$/.test(hexStr)) {
-        await message.reply('<:closecirclefill:1562606683371339786> Código HEX inválido. Use 6 dígitos (ex: `#2d8f31`) ou `#` pra cor padrão.');
+        await message.reply(erro('Essa cor não existe', 'Use um HEX com 6 dígitos, como `#0330ef`, ou `#` para a cor padrão.'));
         return;
       }
       cor = parseInt(hexStr, 16);
@@ -75,7 +72,7 @@ module.exports = {
     const imediato = duracaoRaw.trim() === '#';
     if (!imediato) {
       if (!/^\d+$/.test(duracaoRaw.trim()) || parseInt(duracaoRaw.trim(), 10) < 1) {
-        await message.reply('<:closecirclefill:1562606683371339786> A quantidade de mensagens precisa ser um número maior que 0, ou `#` pra enviar agora.');
+        await message.reply(erro('Esse número não serve', 'A quantidade de mensagens precisa ser maior que 0, ou `#` para enviar agora.'));
         return;
       }
       intervalo = parseInt(duracaoRaw.trim(), 10);
@@ -85,12 +82,12 @@ module.exports = {
 
     if (imediato) {
       const enviados = await enviarAnuncioParaTodos(anuncio);
-      await message.reply(`<:checkboxcirclefill:1562606683371339777> Anúncio enviado agora para **${enviados}** servidor(es).`);
+      await message.reply(sucesso('Anúncio enviado', `Mandei o anúncio para **${enviados}** comunidades.`));
       return;
     }
 
     await agendarAnuncio(anuncio, intervalo);
     log.ok('ANUNCIO', `Anúncio automático salvo (a cada ${intervalo} mensagens)`);
-    await message.reply(`<:checkboxcirclefill:1562606683371339777> Anúncio salvo! Ele será enviado **a cada ${intervalo} mensagens** do chat global.\n-# Use g.anuncio parar para desativar.`);
+    await message.reply(sucesso('Anúncio agendado', `Ele será enviado a cada **${intervalo}** mensagens do chat global, use \`${PREFIXO}anuncio parar\` para desligar.`));
   }
 };

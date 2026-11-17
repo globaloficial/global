@@ -3,6 +3,7 @@ const Guild = require('../models/Guild');
 const Bloqueio = require('../models/Bloqueio');
 const { log, errMsg } = require('../util/logger');
 const { obterDestinos } = require('../lib/cacheDestinos');
+const { removerGuildDasPontes } = require('./pontes');
 
 const falhasConsecutivas = new Map();
 const suspensoes = new Map();
@@ -67,6 +68,19 @@ function registrarSucessoDestino(guildId) {
   limparFalhasDestino(guildId);
 }
 
+async function removerConexaoDeGuild(guildId) {
+  const gId = String(guildId);
+  await removerGuildDasPontes(gId);
+  const r = await Guild.updateOne(
+    { guildId: gId, canalId: { $ne: null } },
+    { canalId: null, pausado: false, filtrarPalavroes: false, filtrarLinks: false }
+  );
+  if (r.matchedCount === 0) return false;
+  limparFalhasDestino(gId);
+  log.warn('LIMPEZA', `Bot saiu/servidor deletado (${gId}); conexão global removida.`);
+  return true;
+}
+
 async function carregarDestinosAtivos() {
   const [guilds, bloqueados] = await Promise.all([
     Guild.find({ canalId: { $ne: null }, pausado: false }).select('+webhookToken').lean(),
@@ -79,6 +93,7 @@ async function carregarDestinosAtivos() {
     .filter((g) => !bloqueadosSet.has(g.guildId))
     .map((g) => ({
       guildId: g.guildId,
+      plataforma: g.plataforma || 'fluxer',
       canalId: g.canalId,
       filtrarPalavroes: g.filtrarPalavroes !== false,
       filtrarLinks: !!g.filtrarLinks,
@@ -98,6 +113,7 @@ module.exports = {
   tratarFalhaDestino,
   registrarSucessoDestino,
   limparFalhasDestino,
+  removerConexaoDeGuild,
   listarDestinosAtivos,
   destinoSuspenso
 };

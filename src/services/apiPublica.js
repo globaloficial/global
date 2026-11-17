@@ -2,6 +2,7 @@ const http = require('http');
 const { STATS_PORT, STATS_ORIGEM } = require('../config');
 const { obterEstatisticas } = require('./estatisticas');
 const { tratarRotaSuporte, ehRotaSuporte } = require('./suporte/rotas');
+const { tratarRotaDash, ehRotaDash } = require('./dashboard/rotas');
 const { log } = require('../util/logger');
 
 const ORIGENS = STATS_ORIGEM.split(',').map((origem) => origem.trim()).filter(Boolean);
@@ -24,6 +25,11 @@ function responder(req, res, status, corpo) {
 
 async function tratarRequisicao(req, res) {
   const url = new URL(req.url, 'http://localhost');
+
+  if (ehRotaDash(url.pathname)) {
+    await tratarRotaDash(req, res, url);
+    return;
+  }
 
   if (ehRotaSuporte(url.pathname)) {
     await tratarRotaSuporte(req, res, url);

@@ -1,5 +1,6 @@
 const { ehStaffOuDono } = require('../../services/permissoes');
 const { log, descreverContexto } = require('../../util/logger');
+const { SEM_PERMISSAO } = require('../../util/respostas');
 
 function tipoBloqueio(token) {
   const t = (token || '').toLowerCase();
@@ -11,7 +12,7 @@ function tipoBloqueio(token) {
 async function negarSeNaoStaff(message) {
   if (await ehStaffOuDono(message.author.id)) return false;
   log.warn('ACESSO', `Acesso negado (staff) para ${descreverContexto(message)}`);
-  await message.reply('<:closecirclefill:1562606683371339786> **Somente a equipe do Global** pode realizar essa ação.');
+  await message.reply(SEM_PERMISSAO.staff);
   return true;
 }
 

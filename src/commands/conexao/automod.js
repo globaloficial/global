@@ -3,6 +3,9 @@ const Guild = require('../../models/Guild');
 const { idDoServidor } = require('../../util/ids');
 const { log, descreverContexto } = require('../../util/logger');
 const { temPermissaoConfig } = require('../../services/permissoes');
+const { abrirPainel } = require('../../services/paineis');
+const { erro, semConexao, SEM_PERMISSAO } = require('../../util/respostas');
+const { PREFIXO } = require('../../config');
 
 module.exports = {
   name: 'automod',
@@ -22,7 +25,24 @@ module.exports = {
     const ligar = ['on', 'ligar', 'ativar', 'sim'].includes(e) ? true
       : ['off', 'desligar', 'desativar', 'nao', 'não'].includes(e) ? false : null;
 
-    // Sem argumentos válidos só mostra o estado, então não exige permissão.
+    if (!alvo) {
+      if (!(await temPermissaoConfig(message))) {
+        await message.reply(SEM_PERMISSAO.painel);
+        return;
+      }
+      if (!(await Guild.exists({ guildId: gId, canalId: { $ne: null } }))) {
+        await message.reply(semConexao(PREFIXO));
+        return;
+      }
+      if (!(await abrirPainel(message, 'automod', gId))) {
+        await message.reply(erro(
+          'Não consegui abrir o painel',
+          'Confira se eu tenho as permissões de **Enviar mensagens**, **Adicionar reações** e **Gerenciar mensagens** neste canal.'
+        ));
+      }
+      return;
+    }
+
     if (!alvo || ligar === null) {
       const cfg = await configDaGuild(gId);
       const st = (v) => (v ? '**filtrando**' : '**liberado**');

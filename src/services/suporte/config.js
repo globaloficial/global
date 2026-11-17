@@ -2,6 +2,8 @@ const lista = (valor) => String(valor || '').split(',').map((item) => item.trim(
 
 const SITE = (process.env.SUPORTE_SITE || 'https://support.globalbot.site').replace(/\/$/, '');
 
+const DASH_SITE = (process.env.DASH_SITE || 'https://dash.globalbot.site').replace(/\/$/, '');
+
 const API = (process.env.SUPORTE_API || 'https://api.globalbot.site').replace(/\/$/, '');
 
 const SEGREDO = process.env.SUPORTE_SEGREDO || '';
@@ -45,4 +47,4 @@ const PROVEDORES = {
 
 const suporteAtivo = () => Boolean(SEGREDO) && Object.values(PROVEDORES).some((p) => p.clientId && p.clientSecret);
 
-module.exports = { SITE, API, SEGREDO, DOMINIO_COOKIE, SESSAO_MS, LIMITES, PROVEDORES, suporteAtivo };
+module.exports = { SITE, DASH_SITE, API, SEGREDO, DOMINIO_COOKIE, SESSAO_MS, LIMITES, PROVEDORES, suporteAtivo };

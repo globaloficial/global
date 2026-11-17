@@ -1,64 +1,22 @@
 const { EmbedBuilder } = require('@fluxerjs/core');
-const { DONO_ID } = require('../../config');
-const { ehStaffOuDono } = require('../../services/permissoes');
+const { EMOJI } = require('../../util/respostas');
 
 module.exports = {
   name: 'ajuda',
   aliases: ['help', 'comandos'],
-  description: 'Mostra todos os comandos do Global.',
+  description: 'Apresenta o Global e os links principais.',
 
   async execute(message) {
-    const staff = await ehStaffOuDono(message.author.id);
-    const dono = message.author.id === DONO_ID;
-
-    const publico = (nome, valor) => ({ nome, valor, emoji: '<:togglefill:1562606683371339783>' });
-    const restrito = (nome, valor) => ({ nome, valor, emoji: '<:toggleline:1562606683371339782>' });
-
-    const comandos = [
-      publico('g.ping/status', 'Mostra a latência do Global.'),
-      publico('g.help/ajuda', 'Mostra todos os comandos do Global.'),
-      publico('g.conectar', 'No canal que é executado, seta a conexão Global.'),
-      publico('g.config', 'Abre o painel: modo webhook ou embed e ícone do servidor.'),
-      publico('g.desconectar', 'Desconecta este servidor do chat global.'),
-      publico('g.pausar/retomar', 'Pausa ou retoma o chat global neste servidor.'),
-      publico('g.automod', 'Escolhe se este servidor filtra palavrões e links (padrão: liberados).'),
-      publico('g.report', 'Responda a uma mensagem do global com g.report [motivo] para denunciá-la.'),
-      publico('g.perfil/profile', 'Mostra o card de perfil seu ou de outro usuário.'),
-      publico('g.destacar', 'Escolhe a badge em destaque no perfil e na cor das suas mensagens.'),
-      publico('g.botinfo/global', 'Envia as informações principais do Global.')
-    ];
-
-    if (staff) {
-      comandos.push(
-        restrito('g.ban/unban', 'Bloqueia ou desbloqueia um usuário ou servidor do global.'),
-        restrito('g.bloqueios', 'Lista usuários e servidores bloqueados.'),
-        restrito('g.filtro', 'Gerencia o filtro (add/remove/liberar/testar/recarregar/list).'),
-        restrito('g.badge', 'Concede, remove ou lista as badges de um usuário.'),
-        restrito('g.servidores', 'Lista os servidores conectados ao global.')
+    const embed = new EmbedBuilder()
+      .setColor(0x0330EF)
+      .setTitle(`${EMOJI.coracao} Olá! Eu sou o Global.`)
+      .setDescription('O Global é um bot do Fluxer criado para o público brasileiro. Ele conecta comunidades em um chat global: o que alguém escreve no canal conectado de um servidor é retransmitido para os canais conectados dos outros servidores.')
+      .addFields(
+        { name: `${EMOJI.janela} Visite o site do Global:`, value: 'https://globalbot.site/', inline: true },
+        { name: `${EMOJI.privado} Leia as nossas Políticas de Privacidade:`, value: 'https://docs.globalbot.site/politicas', inline: true },
+        { name: `${EMOJI.conversa} Acesse os comandos do Global:`, value: 'https://globalbot.site/comandos', inline: true }
       );
-    }
 
-    if (dono) {
-      comandos.push(
-        restrito('g.servercolor', 'Troca a cor da mensagem dos membros em um servidor específico.'),
-        restrito('g.up/down', 'Promove um usuário para staff, e remove de um membro do staff.'),
-        restrito('g.anuncio', 'Cria ou agenda um anúncio global.')
-      );
-    }
-
-    try {
-      const embedAjuda = new EmbedBuilder()
-        .setTitle('<:information2fill:1562606683371339784> Confira meus Comandos')
-        .setDescription('-# Bastantes comandos não é? Bom, o suficiente pra um bot que conecta mensagens.')
-        .setColor(0x0330EF)
-        .addFields(...comandos.map((c) => ({ name: `${c.emoji} ${c.nome}`, value: c.valor, inline: true })));
-
-      await message.reply({ embeds: [embedAjuda] });
-    } catch (e) {
-      await message.reply(
-        '<:information2fill:1562606683371339784> **Comandos do Global**\n\n' +
-        comandos.map((c) => `• \`${c.nome}\` — ${c.valor}`).join('\n')
-      );
-    }
+    await message.reply({ embeds: [embed] });
   }
 };

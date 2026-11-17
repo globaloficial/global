@@ -1,4 +1,5 @@
-const { ehDev } = require('../../config');
+const { ehDev, PREFIXO } = require('../../config');
+const { EMOJI, montar, erro, SEM_PERMISSAO, usoIncorreto } = require('../../util/respostas');
 const Guild = require('../../models/Guild');
 const { ehSnowflake } = require('../../util/ids');
 const { log, descreverContexto } = require('../../util/logger');
@@ -11,12 +12,12 @@ module.exports = {
   async execute(message, args) {
     if (!ehDev(message.author.id)) {
       log.warn('SERVERCOLOR', `Acesso negado para ${descreverContexto(message)}`);
-      await message.reply('<:closecirclefill:1562606683371339786> **Somente o desenvolvedor do Global** pode realizar essa ação.');
+      await message.reply(SEM_PERMISSAO.dono);
       return;
     }
 
     if (args.length < 2) {
-      await message.reply('<:information2fill:1562606683371339784> Uso correto: `g.servercolor <ID_DO_SERVIDOR> <#HEX>`');
+      await message.reply(usoIncorreto(message, PREFIXO, 'Vou me acalmar pra não pintar o servidor errado.', `${PREFIXO}servercolor <ID do servidor> <#HEX>`));
       return;
     }
 
@@ -24,12 +25,12 @@ module.exports = {
     const hexStr = args[1].replace('#', '');
 
     if (!ehSnowflake(targetGuildId)) {
-      await message.reply('<:closecirclefill:1562606683371339786> ID de servidor inválido. Use apenas números.');
+      await message.reply(erro('Esse ID não existe', 'Use apenas números no ID do servidor.'));
       return;
     }
 
     if (!/^[0-9a-fA-F]{6}$/.test(hexStr)) {
-      await message.reply('<:closecirclefill:1562606683371339786> Código HEX inválido. Use 6 dígitos hexadecimais (ex: `#2d8f31` ou `c0b29d`).');
+      await message.reply(erro('Essa cor não existe', 'Use um HEX com 6 dígitos, como `#2d8f31` ou `c0b29d`.'));
       return;
     }
 
@@ -37,6 +38,6 @@ module.exports = {
     await Guild.findOneAndUpdate({ guildId: targetGuildId }, { cor: corInt }, { upsert: true });
     log.ok('SERVERCOLOR', `Cor do servidor ${targetGuildId} -> #${hexStr}`);
 
-    await message.reply(`<:brushaifill:1562606683371339785> Cor padrão do servidor \`${targetGuildId}\` atualizada para \`#${hexStr}\` com sucesso.`);
+    await message.reply(montar(EMOJI.pincel, 'Cor atualizada', `A cor das mensagens do servidor \`${targetGuildId}\` agora é \`#${hexStr}\`.`));
   }
 };
