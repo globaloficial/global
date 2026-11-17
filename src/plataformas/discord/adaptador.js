@@ -213,7 +213,7 @@ function apagarCopia(copia, credenciais) {
 
 async function buscarMensagem(canalId, msgId) {
   const canal = await discordClient.channels.fetch(String(canalId));
-  const mensagem = await canal.messages.fetch(String(msgId));
+  const mensagem = await canal['messages'].fetch(String(msgId));
   return criarMensagemCompat(mensagem);
 }
 

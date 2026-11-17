@@ -72,7 +72,7 @@ function podeGerenciar(permissoes, usuarioId) {
 
 function mencoesCompat(colecao) {
   const usuarios = colecao instanceof Map ? colecao : new Map();
-  if (typeof usuarios.first !== 'function') usuarios.first = () => usuarios.values().next().value;
+  if (typeof usuarios['first'] !== 'function') usuarios['first'] = () => usuarios.values().next().value;
   return { users: usuarios };
 }
 
