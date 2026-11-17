@@ -23,13 +23,37 @@ const { prepararAnexos } = require('./anexos');
 
 const cooldownUsuarios = new Map();
 
+const LIMITE_PREVIA = 30;
+
+function limparPrevia(texto) {
+  const linhas = String(texto || '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith('-#') && !/^(<@!?\d+>\s*)+$/.test(l));
+  return linhas.join(' ').replace(/<a?:[\w~]+:\d+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function encurtarPrevia(texto) {
+  if (texto.length <= LIMITE_PREVIA) return texto;
+  const corte = texto.slice(0, LIMITE_PREVIA);
+  const ultimoEspaco = corte.lastIndexOf(' ');
+  const base = ultimoEspaco >= LIMITE_PREVIA / 2 ? corte.slice(0, ultimoEspaco) : corte;
+  return `${base.trimEnd()}...`;
+}
+
 async function previaDaMensagem(message, refId) {
   try {
     const original = await message.channel.messages.fetch(String(refId));
-    const texto = String((original && original.content) || '').replace(/\s+/g, ' ').trim();
-    return texto ? limitar(texto, 40) : null;
+    let texto = limparPrevia(original && original.content);
+    if (!texto && original && Array.isArray(original.embeds) && original.embeds[0]) {
+      const embed = original.embeds[0];
+      texto = limparPrevia(embed.description || (embed.data && embed.data.description));
+    }
+    const autor = original && original.author;
+    const nome = autor ? autor.globalName || autor.displayName || autor.username || null : null;
+    return { texto: texto ? encurtarPrevia(texto) : null, nome };
   } catch (_) {
-    return null;
+    return { texto: null, nome: null };
   }
 }
 
@@ -139,7 +163,9 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   };
 
   const refId = message.messageReference ? message.messageReference.messageId : null;
-  const previaReply = refId ? await previaDaMensagem(message, refId) : null;
+  const dadosReply = refId ? await previaDaMensagem(message, refId) : { texto: null, nome: null };
+  const previaReply = dadosReply.texto;
+  const nomeReply = dadosReply.nome;
   let grupoRespondido = null;
   let origemReply = null;
   const copiasDoRespondido = new Map();
@@ -189,7 +215,8 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
           mencao,
           origemReply,
           alvoReply,
-          previaReply
+          previaReply,
+          nomeReply
         });
       });
     }));
@@ -278,4 +305,4 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   if (!ponte) await contarMensagemParaAnuncio();
 }
 
-module.exports = { retransmitirMensagemGlobal, cancelarRetransmissao };
+module.exports = { retransmitirMensagemGlobal, cancelarRetransmissao, limparPrevia, encurtarPrevia };

@@ -6,7 +6,6 @@ H.instalarApi(H.criarApi());
 
 const pontes = require('../src/services/pontes');
 const Ponte = require('../src/models/Ponte');
-const Guild = require('../src/models/Guild');
 const conectar = require('../src/commands/conexao/conectar');
 const pausar = require('../src/commands/conexao/pausar');
 const retomar = require('../src/commands/conexao/retomar');

@@ -1,5 +1,5 @@
 const { ehDev, PREFIXO } = require('../../config');
-const { sucesso, info, SEM_PERMISSAO, usoIncorreto } = require('../../util/respostas');
+const { sucesso, SEM_PERMISSAO, usoIncorreto } = require('../../util/respostas');
 const User = require('../../models/User');
 const { ehSnowflake } = require('../../util/ids');
 const { log, descreverContexto } = require('../../util/logger');

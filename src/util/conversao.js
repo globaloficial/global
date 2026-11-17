@@ -61,12 +61,12 @@ function converterConteudo(texto, origem, destino) {
     .replace(/<@&\d+>/g, '@cargo')
     .replace(/<@!?\d+>/g, '@usuário')
     .replace(/<#\d+>/g, '#canal')
-    .replace(/@(everyone|here)\b/g, '@​$1');
+    .replace(/@(everyone|here)\b/g, '@\u200b$1');
 }
 
 function nomeWebhookDiscord(nome) {
   return String(nome)
-    .replace(NOMES_PROIBIDOS_NO_WEBHOOK, (trecho) => `${trecho[0]}​${trecho.slice(1)}`)
+    .replace(NOMES_PROIBIDOS_NO_WEBHOOK, (trecho) => `${trecho[0]}\u200b${trecho.slice(1)}`)
     .slice(0, 80);
 }
 

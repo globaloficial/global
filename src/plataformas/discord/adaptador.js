@@ -3,6 +3,7 @@ const { discordClient } = require('../../lib/discordClient');
 const { MODO_ENVIO, COR_PADRAO_ANUNCIO } = require('../../config');
 const { log, errMsg } = require('../../util/logger');
 const { ehRateLimit, marcarEnvio } = require('../../util/ratelimit');
+const { emojiDiscord } = require('./emojis');
 const { nomeWebhookDiscord, limitar, textoDoBotParaDiscord } = require('../../util/conversao');
 const { montarEmbedJson, montarPayloadWebhook, montarCorpoEdicaoWebhook } = require('../../services/chat/mensagem');
 const { ErroSemWebhook } = require('../../services/entrega/semWebhook');
@@ -81,22 +82,34 @@ async function executarWebhook(destino, payload) {
   return { mensagem, webhookId: String(novo.id) };
 }
 
-function conteudoWebhookDoDestino(base, mencao, alvoReply, destino, previa) {
-  const texto = (previa || 'mensagem').replace(/[\[\]]/g, '');
-  const prefixoReply = alvoReply
-    ? `-# Respondendo a: [${texto}](<${linkDaMensagem(destino.guildId, alvoReply.canalId, alvoReply.msgId)}>)\n`
-    : '';
-  const prefixoMencao = mencao ? `${mencao}\n` : '';
-  return limitar(`${prefixoReply}${prefixoMencao}${base.content}`, LIMITE_CONTEUDO);
+const ROTULO_PLATAFORMA = { fluxer: 'Fluxer', discord: 'Discord' };
+
+function mencaoDoAutorRespondido(origemReply, mencao) {
+  return origemReply && origemReply.plataforma === 'discord' && mencao ? mencao : null;
+}
+
+function conteudoWebhookDoDestino(base, alvoReply, destino, previa, origemReply, nomeReply) {
+  const texto = (previa || 'mensagem').replace(/[[\]]/g, '');
+  let prefixoReply = '';
+  if (alvoReply) {
+    const rotulo = ROTULO_PLATAFORMA[origemReply && origemReply.plataforma] || 'Global';
+    const doDiscord = origemReply && origemReply.plataforma === 'discord' && origemReply.autorId;
+    const nome = String(nomeReply || '').replace(/[[\]<>@`*_~|]/g, '').trim();
+    const autor = doDiscord ? ` <@${origemReply.autorId}> :` : nome ? ` ${nome} :` : ':';
+    const link = linkDaMensagem(destino.guildId, alvoReply.canalId, alvoReply.msgId);
+    prefixoReply = `-# ${emojiDiscord('reply_l')}${emojiDiscord('reply_r')}Respondendo a [${rotulo}]${autor} [${texto}](<${link}>)\n`;
+  }
+  return limitar(`${prefixoReply}${base.content}`, LIMITE_CONTEUDO);
 }
 
 async function entregarPorWebhook(destino, entrega) {
-  const { preparo, mencao, origemReply, alvoReply, previaReply } = entrega;
+  const { preparo, mencao, origemReply, alvoReply, previaReply, nomeReply } = entrega;
   const base = await preparo.payloadWebhook();
+  const pinga = mencaoDoAutorRespondido(origemReply, mencao);
   const payload = {
     ...base,
-    content: conteudoWebhookDoDestino(base, mencao, alvoReply, destino, previaReply),
-    allowedMentions: mencao ? { parse: [], users: [origemReply.autorId] } : { parse: [] }
+    content: conteudoWebhookDoDestino(base, alvoReply, destino, previaReply, origemReply, nomeReply),
+    allowedMentions: pinga ? { parse: [], users: [origemReply.autorId] } : { parse: [] }
   };
 
   const enviada = await executarWebhook(destino, payload);
@@ -117,7 +130,8 @@ function enviarPelaApi(canalId, corpo) {
 }
 
 async function entregarPorEmbed(destino, entrega) {
-  const { preparo, mencao, origemReply, alvoReply } = entrega;
+  const { preparo, origemReply, alvoReply } = entrega;
+  const mencao = mencaoDoAutorRespondido(origemReply, entrega.mencao);
 
   const corpo = {
     embeds: [preparo.embed],
