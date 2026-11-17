@@ -20,6 +20,8 @@ const EMOJIS = {
   pingpongfill: ['pingpongfill', '1571357902571307048'],
   contribuidor: ['contribuidor', '1571549798979346726'],
   otobank: ['otobank', '1571549827098087454'],
+  reply_l: ['reply_l', '1572363999369109688'],
+  reply_r: ['reply_r', '1572364084970528818'],
   conversador: ['conversador', '1571357903980597258'],
   developer: ['developer', '1571357906077618296'],
   parceiro: ['parceiro', '1571357847877451876'],

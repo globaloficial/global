@@ -28,3 +28,10 @@ test('textos do bot no Discord usam os emojis personalizados do Discord', () => 
   const texto = textoDoBotParaDiscord('<:errorwarningfill:1563362758655746048> Não consegui');
   assert.equal(texto, '<:errorwarningfill:1571357860049195170> Não consegui');
 });
+
+test('prévia do reply mostra só o começo da mensagem, sem a linha do servidor', () => {
+  const { limparPrevia, encurtarPrevia } = require('../src/services/chat/retransmissao');
+  assert.equal(limparPrevia('<@123>\ndune manda algo ai\n-# Servidor do xMqR'), 'dune manda algo ai');
+  assert.equal(encurtarPrevia('muito engraçado kkkk e continua com bastante texto depois'), 'muito engraçado kkkk e...');
+  assert.equal(encurtarPrevia('curta'), 'curta');
+});

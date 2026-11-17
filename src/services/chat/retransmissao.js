@@ -23,11 +23,33 @@ const { prepararAnexos } = require('./anexos');
 
 const cooldownUsuarios = new Map();
 
+const LIMITE_PREVIA = 30;
+
+function limparPrevia(texto) {
+  const linhas = String(texto || '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith('-#') && !/^(<@!?\d+>\s*)+$/.test(l));
+  return linhas.join(' ').replace(/<a?:[\w~]+:\d+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function encurtarPrevia(texto) {
+  if (texto.length <= LIMITE_PREVIA) return texto;
+  const corte = texto.slice(0, LIMITE_PREVIA);
+  const ultimoEspaco = corte.lastIndexOf(' ');
+  const base = ultimoEspaco >= LIMITE_PREVIA / 2 ? corte.slice(0, ultimoEspaco) : corte;
+  return `${base.trimEnd()}...`;
+}
+
 async function previaDaMensagem(message, refId) {
   try {
     const original = await message.channel.messages.fetch(String(refId));
-    const texto = String((original && original.content) || '').replace(/\s+/g, ' ').trim();
-    return texto ? limitar(texto, 40) : null;
+    let texto = limparPrevia(original && original.content);
+    if (!texto && original && Array.isArray(original.embeds) && original.embeds[0]) {
+      const embed = original.embeds[0];
+      texto = limparPrevia(embed.description || (embed.data && embed.data.description));
+    }
+    return texto ? encurtarPrevia(texto) : null;
   } catch (_) {
     return null;
   }
@@ -278,4 +300,4 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   if (!ponte) await contarMensagemParaAnuncio();
 }
 
-module.exports = { retransmitirMensagemGlobal, cancelarRetransmissao };
+module.exports = { retransmitirMensagemGlobal, cancelarRetransmissao, limparPrevia, encurtarPrevia };
