@@ -61,7 +61,7 @@ module.exports = {
           estilo: b === atual ? 'primary' : 'secondary',
           emoji: emojisBadges[b]
         }));
-        botoes.push({ id: `cmd|${userId}|destacar|limpar`, rotulo: 'Nenhuma', estilo: 'danger' });
+        botoes.push({ id: `cmd|${userId}|destacar|limpar`, rotulo: 'Nenhuma', estilo: 'danger', emoji: null });
         await message.reply({ embeds: embedsDaLista(possui, atual, true), botoes });
         return;
       }

@@ -20,7 +20,7 @@ const EMOJI = {
 const SUPORTE = 'https://support.globalbot.site';
 const LINHA_ERRO = `Você acha que isso é um [erro](${SUPORTE})?`;
 
-function montar(emoji, titulo, texto, { acima, abaixo } = {}) {
+function montar(emoji, titulo, texto, { acima = null, abaixo = null } = {}) {
   return [
     `# ${emoji} ${titulo}`,
     acima ? `-# ${acima}` : null,

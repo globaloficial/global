@@ -36,7 +36,7 @@ async function trocarCodigo(provedor, codigo) {
   });
   if (!resposta.ok) throw new Error(`Troca do código falhou (${resposta.status})`);
 
-  const dados = await resposta.json();
+  const dados = Object(await resposta.json());
   if (!dados.access_token) throw new Error('Resposta sem access_token');
   return dados.access_token;
 }
@@ -46,7 +46,7 @@ async function buscarUsuario(provedor, token) {
   const resposta = await fetch(config.usuario, { headers: { Authorization: `Bearer ${token}` } });
   if (!resposta.ok) throw new Error(`Leitura do usuário falhou (${resposta.status})`);
 
-  const dados = await resposta.json();
+  const dados = Object(await resposta.json());
   if (!dados.id) throw new Error('Usuário sem id');
 
   return {
