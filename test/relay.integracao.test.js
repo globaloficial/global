@@ -19,11 +19,8 @@ async function novoCenario(opcoes, destinos) {
   H.popularDestinos(destinos);
   await Guild.updateOne({ guildId: 'g1' }, { pausado: false });
   H.consultas.clear();
-  apiDoCenario = api;
   return api;
 }
-
-let apiDoCenario = null;
 
 const consultasDe = (...chaves) => chaves.reduce((s, k) => s + (H.consultas.get(k) || 0), 0);
 

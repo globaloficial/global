@@ -82,7 +82,7 @@ async function executarWebhook(destino, payload) {
 }
 
 function conteudoWebhookDoDestino(base, mencao, alvoReply, destino, previa) {
-  const texto = (previa || 'mensagem').replace(/[\[\]]/g, '');
+  const texto = (previa || 'mensagem').replace(/[[\]]/g, '');
   const prefixoReply = alvoReply
     ? `-# Respondendo a: [${texto}](<${linkDaMensagem(destino.guildId, alvoReply.canalId, alvoReply.msgId)}>)\n`
     : '';

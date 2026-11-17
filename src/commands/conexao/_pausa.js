@@ -2,7 +2,7 @@ const { log, descreverContexto } = require('../../util/logger');
 const { temPermissaoConfig } = require('../../services/permissoes');
 const { conexaoDoCanal, definirPausa } = require('../../services/conexoes');
 const { PREFIXO } = require('../../config');
-const { EMOJI, sucesso, erro, erroSimples, SEM_PERMISSAO } = require('../../util/respostas');
+const { sucesso, erroSimples, SEM_PERMISSAO } = require('../../util/respostas');
 
 async function alternarPausa(message, pausar) {
   if (!message.channel) return;
