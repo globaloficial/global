@@ -49,9 +49,11 @@ async function previaDaMensagem(message, refId) {
       const embed = original.embeds[0];
       texto = limparPrevia(embed.description || (embed.data && embed.data.description));
     }
-    return texto ? encurtarPrevia(texto) : null;
+    const autor = original && original.author;
+    const nome = autor ? autor.globalName || autor.displayName || autor.username || null : null;
+    return { texto: texto ? encurtarPrevia(texto) : null, nome };
   } catch (_) {
-    return null;
+    return { texto: null, nome: null };
   }
 }
 
@@ -161,7 +163,9 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   };
 
   const refId = message.messageReference ? message.messageReference.messageId : null;
-  const previaReply = refId ? await previaDaMensagem(message, refId) : null;
+  const dadosReply = refId ? await previaDaMensagem(message, refId) : { texto: null, nome: null };
+  const previaReply = dadosReply.texto;
+  const nomeReply = dadosReply.nome;
   let grupoRespondido = null;
   let origemReply = null;
   const copiasDoRespondido = new Map();
@@ -211,7 +215,8 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
           mencao,
           origemReply,
           alvoReply,
-          previaReply
+          previaReply,
+          nomeReply
         });
       });
     }));

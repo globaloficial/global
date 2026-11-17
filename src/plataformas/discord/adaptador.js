@@ -88,12 +88,14 @@ function mencaoDoAutorRespondido(origemReply, mencao) {
   return origemReply && origemReply.plataforma === 'discord' && mencao ? mencao : null;
 }
 
-function conteudoWebhookDoDestino(base, mencao, alvoReply, destino, previa, origemReply) {
+function conteudoWebhookDoDestino(base, alvoReply, destino, previa, origemReply, nomeReply) {
   const texto = (previa || 'mensagem').replace(/[[\]]/g, '');
   let prefixoReply = '';
   if (alvoReply) {
     const rotulo = ROTULO_PLATAFORMA[origemReply && origemReply.plataforma] || 'Global';
-    const autor = origemReply && origemReply.plataforma === 'discord' && origemReply.autorId ? ` <@${origemReply.autorId}> :` : ':';
+    const doDiscord = origemReply && origemReply.plataforma === 'discord' && origemReply.autorId;
+    const nome = String(nomeReply || '').replace(/[[\]<>@`*_~|]/g, '').trim();
+    const autor = doDiscord ? ` <@${origemReply.autorId}> :` : nome ? ` ${nome} :` : ':';
     const link = linkDaMensagem(destino.guildId, alvoReply.canalId, alvoReply.msgId);
     prefixoReply = `-# ${emojiDiscord('reply_l')}${emojiDiscord('reply_r')}Respondendo a [${rotulo}]${autor} [${texto}](<${link}>)\n`;
   }
@@ -101,12 +103,12 @@ function conteudoWebhookDoDestino(base, mencao, alvoReply, destino, previa, orig
 }
 
 async function entregarPorWebhook(destino, entrega) {
-  const { preparo, mencao, origemReply, alvoReply, previaReply } = entrega;
+  const { preparo, mencao, origemReply, alvoReply, previaReply, nomeReply } = entrega;
   const base = await preparo.payloadWebhook();
   const pinga = mencaoDoAutorRespondido(origemReply, mencao);
   const payload = {
     ...base,
-    content: conteudoWebhookDoDestino(base, mencao, alvoReply, destino, previaReply, origemReply),
+    content: conteudoWebhookDoDestino(base, alvoReply, destino, previaReply, origemReply, nomeReply),
     allowedMentions: pinga ? { parse: [], users: [origemReply.autorId] } : { parse: [] }
   };
 
