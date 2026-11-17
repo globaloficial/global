@@ -5,6 +5,7 @@ const { log } = require('../../util/logger');
 const { ErroPainel } = require('./erros');
 const servidores = require('./servidores');
 const equipe = require('./equipe');
+const pontes = require('./pontes');
 
 const limiteExcedido = criarLimitador({ maximo: 90 });
 const limiteEscrita = criarLimitador({ maximo: 20 });
@@ -56,7 +57,19 @@ function json(res, status, corpo, extra) {
 }
 
 async function rotaDeServidor(req, res, usuario, partes, corpo) {
-  const [, , plataforma, id, extra] = partes;
+  const [, , plataforma, id, extra, codigo, subrecurso, alvo] = partes;
+
+  if (plataforma && id && extra === 'pontes') {
+    if (!codigo && req.method === 'GET') return json(res, 200, await pontes.listar(usuario, plataforma, id));
+    if (!codigo && req.method === 'POST') return json(res, 201, await pontes.criar(usuario, plataforma, id, corpo));
+    if (codigo === 'entrar' && req.method === 'POST') return json(res, 200, await pontes.entrar(usuario, plataforma, id, corpo));
+    if (codigo && !subrecurso && req.method === 'PATCH') return json(res, 200, await pontes.alterar(usuario, plataforma, id, codigo, corpo));
+    if (codigo && !subrecurso && req.method === 'DELETE') return json(res, 200, await pontes.encerrar(usuario, plataforma, id, codigo));
+    if (codigo && subrecurso === 'participantes' && alvo && req.method === 'DELETE') {
+      return json(res, 200, await pontes.removerParticipante(usuario, plataforma, id, codigo, alvo));
+    }
+    return json(res, 404, { erro: 'Não encontrado' });
+  }
 
   if (!plataforma && req.method === 'GET') {
     return json(res, 200, { servidores: await servidores.listarServidores(usuario) });

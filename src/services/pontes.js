@@ -119,6 +119,10 @@ async function entrarNaPonte(codigo, dados) {
   return { ponte: atualizada };
 }
 
+async function renomearPonte(ponte, nome) {
+  await salvar({ ...ponte, nome: nome ? String(nome).slice(0, 40) : null });
+}
+
 async function removerParticipante(ponte, guildId) {
   const id = String(guildId);
   const restantes = ponte.participantes.filter((p) => p.guildId !== id);
@@ -217,6 +221,7 @@ module.exports = {
   canalEstaLivre,
   criarPonte,
   entrarNaPonte,
+  renomearPonte,
   removerParticipante,
   encerrarPonte,
   removerGuildDasPontes,

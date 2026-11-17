@@ -128,13 +128,20 @@ function lerBooleano(valor, campo) {
   return valor;
 }
 
-async function validarCanal(plataforma, guild, canalId) {
+async function validarCanalDeTexto(plataforma, guild, canalId) {
   if (!ehSnowflake(String(canalId))) throw new ErroPainel(400, 'Canal inválido');
+  if (plataformas.servidorAdulto(guild)) throw new ErroPainel(400, 'Servidores +18 não podem usar o Global (veja a Política de Privacidade)');
 
   const canais = await plataformas.listarCanais(plataforma, guild);
   const canal = canais.find((c) => c.id === String(canalId));
   if (!canal) throw new ErroPainel(400, 'Esse canal não existe neste servidor');
   if (canal.nsfw) throw new ErroPainel(400, 'Não é possível conectar um canal +18 (veja a Política de Privacidade)');
+
+  return canal;
+}
+
+async function validarCanal(plataforma, guild, canalId) {
+  await validarCanalDeTexto(plataforma, guild, canalId);
 
   const ocupado = await Guild.exists({ canalId: String(canalId), guildId: { $ne: String(guild.id) } });
   if (ocupado || !(await canalEstaLivre(String(canalId)))) {
@@ -234,4 +241,11 @@ async function logsDoServidor(usuario, plataforma, guildId) {
   }));
 }
 
-module.exports = { listarServidores, detalhesDoServidor, alterarServidor, logsDoServidor };
+module.exports = {
+  listarServidores,
+  detalhesDoServidor,
+  alterarServidor,
+  logsDoServidor,
+  abrirServidor,
+  validarCanalDeTexto
+};

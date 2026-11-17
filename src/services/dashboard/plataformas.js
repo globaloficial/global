@@ -3,6 +3,7 @@ const { PermissionFlagsBits } = require('discord.js');
 const { client } = require('../../lib/client');
 const { discordClient } = require('../../lib/discordClient');
 const { obterIconeServidor } = require('../chat/mensagem');
+const { canalAdulto, servidorAdulto } = require('../filtros/adulto');
 
 const PLATAFORMAS = ['fluxer', 'discord'];
 const TIPOS_TEXTO = [0, 5];
@@ -70,7 +71,7 @@ async function listarCanais(plataforma, guild) {
   return canais
     .filter(ehCanalDeTexto)
     .sort((a, b) => Number(a.position ?? a.rawPosition ?? 0) - Number(b.position ?? b.rawPosition ?? 0))
-    .map((canal) => ({ id: String(canal.id), nome: canal.name, nsfw: Boolean(canal.nsfw) }));
+    .map((canal) => ({ id: String(canal.id), nome: canal.name, nsfw: canalAdulto(canal) }));
 }
 
 module.exports = {
@@ -79,5 +80,6 @@ module.exports = {
   todasAsGuilds,
   permissoesDoUsuario,
   resumoDoServidor,
-  listarCanais
+  listarCanais,
+  servidorAdulto
 };
