@@ -30,7 +30,7 @@ function limparPrevia(texto) {
     .split('\n')
     .map((l) => l.trim())
     .filter((l) => l && !l.startsWith('-#') && !/^(<@!?\d+>\s*)+$/.test(l));
-  return linhas.join(' ').replace(/<a?:[\w~]+:\d+>/g, '').replace(/\s+/g, ' ').trim();
+  return linhas.join(' ').replace(/<?https?:\/\/[^\s>]+>?/gi, 'link').replace(/<a?:[\w~]+:\d+>/g, '').replace(/\s+/g, ' ').trim();
 }
 
 function encurtarPrevia(texto) {

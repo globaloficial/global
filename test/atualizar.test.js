@@ -33,5 +33,7 @@ test('prévia do reply mostra só o começo da mensagem, sem a linha do servidor
   const { limparPrevia, encurtarPrevia } = require('../src/services/chat/retransmissao');
   assert.equal(limparPrevia('<@123>\ndune manda algo ai\n-# Servidor do xMqR'), 'dune manda algo ai');
   assert.equal(encurtarPrevia('muito engraçado kkkk e continua com bastante texto depois'), 'muito engraçado kkkk e...');
+  assert.equal(limparPrevia('entra aqui https://discord.gg/kFGGsbpV9 agora'), 'entra aqui link agora');
+  assert.equal(limparPrevia('<https://discord.gg/abc>'), 'link');
   assert.equal(encurtarPrevia('curta'), 'curta');
 });
