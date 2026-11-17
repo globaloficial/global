@@ -1,13 +1,15 @@
-const { API, SITE, PROVEDORES } = require('./config');
+const { API, SITE, DASH_SITE, PROVEDORES } = require('./config');
 const sessao = require('./sessao');
 
 const redirecionar = (provedor) => `${API}/auth/${provedor}/callback`;
 
-function iniciarLogin(provedor) {
+const destinoDoRetorno = (retorno) => (retorno === 'dash' ? DASH_SITE : SITE);
+
+function iniciarLogin(provedor, retorno) {
   const config = PROVEDORES[provedor];
   if (!config || !config.clientId) return null;
 
-  const { estado, cookie } = sessao.criarEstado(provedor);
+  const { estado, cookie } = sessao.criarEstado(provedor, retorno === 'dash' ? 'dash' : 'suporte');
   const params = new URLSearchParams({
     client_id: config.clientId,
     redirect_uri: redirecionar(provedor),
@@ -57,19 +59,25 @@ async function buscarUsuario(provedor, token) {
 
 async function concluirLogin(req, provedor, url) {
   const codigo = url.searchParams.get('code');
-  const estado = url.searchParams.get('state');
+  const estado = sessao.validarEstado(req, provedor, url.searchParams.get('state'));
+  const base = destinoDoRetorno(estado && estado.retorno);
 
-  if (!codigo || !sessao.validarEstado(req, provedor, estado)) {
-    return { destino: `${SITE}/?login=erro`, cookies: [sessao.limparCookie(sessao.COOKIE_ESTADO)] };
+  if (!codigo || !estado) {
+    return { destino: `${base}/?login=erro`, cookies: [sessao.limparCookie(sessao.COOKIE_ESTADO)] };
   }
 
-  const token = await trocarCodigo(provedor, codigo);
-  const usuario = await buscarUsuario(provedor, token);
+  try {
+    const token = await trocarCodigo(provedor, codigo);
+    const usuario = await buscarUsuario(provedor, token);
 
-  return {
-    destino: `${SITE}/?login=ok`,
-    cookies: [sessao.criarSessao(usuario), sessao.limparCookie(sessao.COOKIE_ESTADO)]
-  };
+    return {
+      destino: `${base}/?login=ok`,
+      cookies: [sessao.criarSessao(usuario), sessao.limparCookie(sessao.COOKIE_ESTADO)]
+    };
+  } catch (e) {
+    e.destino = `${base}/?login=erro`;
+    throw e;
+  }
 }
 
 module.exports = { iniciarLogin, concluirLogin };

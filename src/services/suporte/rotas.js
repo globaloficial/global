@@ -1,4 +1,4 @@
-const { SITE, LIMITES, PROVEDORES, suporteAtivo } = require('./config');
+const { SITE, DASH_SITE, LIMITES, PROVEDORES, suporteAtivo } = require('./config');
 const sessao = require('./sessao');
 const login = require('./login');
 const conversas = require('./conversas');
@@ -84,12 +84,13 @@ async function tratarAuth(req, res, url, partes) {
       return redirecionar(res, resultado.destino, resultado.cookies);
     } catch (e) {
       log.error('SUPORTE', `Falha no login ${provedor}`, e);
-      return redirecionar(res, `${SITE}/?login=erro`, [sessao.limparCookie(sessao.COOKIE_ESTADO)]);
+      return redirecionar(res, e.destino || `${SITE}/?login=erro`, [sessao.limparCookie(sessao.COOKIE_ESTADO)]);
     }
   }
 
-  const inicio = login.iniciarLogin(provedor);
-  if (!inicio) return redirecionar(res, `${SITE}/?login=indisponivel`);
+  const retorno = url.searchParams.get('retorno');
+  const inicio = login.iniciarLogin(provedor, retorno);
+  if (!inicio) return redirecionar(res, `${retorno === 'dash' ? DASH_SITE : SITE}/?login=indisponivel`);
   return redirecionar(res, inicio.url, [inicio.cookie]);
 }
 

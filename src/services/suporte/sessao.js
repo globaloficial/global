@@ -61,15 +61,15 @@ function limparCookie(nome) {
   return montarCookie(nome, '', 0);
 }
 
-function criarEstado(provedor) {
+function criarEstado(provedor, retorno = 'suporte') {
   const estado = crypto.randomBytes(16).toString('hex');
-  const valor = empacotar({ estado, provedor, exp: Date.now() + 10 * 60 * 1000 });
+  const valor = empacotar({ estado, provedor, retorno, exp: Date.now() + 10 * 60 * 1000 });
   return { estado, cookie: montarCookie(COOKIE_ESTADO, valor, 10 * 60 * 1000) };
 }
 
 function validarEstado(req, provedor, estado) {
   const dados = desempacotar(lerCookies(req)[COOKIE_ESTADO]);
-  return Boolean(dados && estado && dados.provedor === provedor && dados.estado === estado);
+  return dados && estado && dados.provedor === provedor && dados.estado === estado ? dados : null;
 }
 
 function usuarioDaRequisicao(req) {
