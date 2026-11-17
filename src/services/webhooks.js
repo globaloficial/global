@@ -116,13 +116,26 @@ function criarGerenciadorWebhooks({ montar, buscarCanal }) {
     }
   }
 
+  async function verificarWebhook(destino) {
+    const chave = `${destino.ponteId || 'global'}:${destino.guildId}:${destino.canalId}`;
+    bloqueadosAte.delete(chave);
+    if (credencialValida(destino)) return { ok: true };
+    try {
+      await criarWebhook(destino);
+      return { ok: true };
+    } catch (e) {
+      if (ehRateLimit(e)) return { ok: false, limite: true };
+      return { ok: false };
+    }
+  }
+
   function webhookDaCopia(copia, credenciais) {
     const cred = credenciais.get(chaveCredencial(copia.guildId, copia.ponteId));
     if (!cred || !copia.webhookId || cred.webhookId !== String(copia.webhookId)) return null;
     return webhookDe(copia.guildId, copia.canalId, cred.webhookId, cred.webhookToken);
   }
 
-  return { obterWebhook, esquecerWebhook, webhookDaCopia };
+  return { obterWebhook, esquecerWebhook, verificarWebhook, webhookDaCopia };
 }
 
 const gerenciadorFluxer = criarGerenciadorWebhooks({
@@ -139,5 +152,6 @@ module.exports = {
   carregarCredenciais,
   esquecerWebhook,
   obterWebhook: gerenciadorFluxer.obterWebhook,
+  verificarWebhook: gerenciadorFluxer.verificarWebhook,
   webhookDaCopia: gerenciadorFluxer.webhookDaCopia
 };

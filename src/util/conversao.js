@@ -1,3 +1,5 @@
+const { EMOJIS } = require('../plataformas/discord/emojis');
+
 const UNICODE_POR_NOME = {
   closecirclefill: '❌',
   checkboxcirclefill: '✅',
@@ -14,7 +16,7 @@ const UNICODE_POR_NOME = {
   forbidline: '🚫'
 };
 
-const COMANDOS_SLASH = new Set(['ping', 'ajuda', 'botinfo', 'conectar', 'desconectar', 'pausar', 'retomar', 'config', 'automod', 'ponte', 'perfil', 'destacar']);
+const COMANDOS_SLASH = new Set(['ping', 'ajuda', 'botinfo', 'conectar', 'desconectar', 'pausar', 'retomar', 'config', 'automod', 'ponte', 'perfil', 'destacar', 'atualizar']);
 
 const EMOJI_PERSONALIZADO = /<a?:([\w~]+):\d+>/g;
 const EMOJI_PERSONALIZADO_UNICO = /^<a?:([\w~]+):\d+>$/;
@@ -32,14 +34,24 @@ function comandosParaSlash(texto) {
   });
 }
 
+function emojiDoDiscord(nome) {
+  const par = EMOJIS[nome];
+  return par ? `<:${par[0]}:${par[1]}>` : null;
+}
+
+function emojiPersonalizadoParaDiscord(texto) {
+  return String(texto).replace(EMOJI_PERSONALIZADO, (_, nome) => emojiDoDiscord(nome) || UNICODE_POR_NOME[nome] || '');
+}
+
 function textoDoBotParaDiscord(texto) {
-  return comandosParaSlash(emojiPersonalizadoParaUnicode(texto));
+  return comandosParaSlash(emojiPersonalizadoParaDiscord(texto));
 }
 
 function emojiParaReacaoDiscord(emoji) {
   const encontrado = String(emoji).match(EMOJI_PERSONALIZADO_UNICO);
   if (!encontrado) return emoji;
-  return UNICODE_POR_NOME[encontrado[1]] || '❓';
+  const par = EMOJIS[encontrado[1]];
+  return par ? `${par[0]}:${par[1]}` : UNICODE_POR_NOME[encontrado[1]] || '❓';
 }
 
 function converterConteudo(texto, origem, destino) {
@@ -66,6 +78,7 @@ function limitar(texto, maximo) {
 module.exports = {
   COMANDOS_SLASH,
   emojiPersonalizadoParaUnicode,
+  emojiPersonalizadoParaDiscord,
   comandosParaSlash,
   textoDoBotParaDiscord,
   emojiParaReacaoDiscord,
