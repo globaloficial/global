@@ -92,7 +92,7 @@ test('/config no Discord abre o painel com botões e reflete o modo de envio', a
 test('slash registra só comandos permitidos e a mensagem compat mantém permissão e conteúdo limpo', async () => {
   carregarComandos();
   const nomes = definicoes().map((d) => d.name).sort();
-  assert.deepEqual(nomes, ['ajuda', 'automod', 'botinfo', 'conectar', 'config', 'desconectar', 'destacar', 'pausar', 'ping', 'ponte', 'retomar']);
+  assert.deepEqual(nomes, ['ajuda', 'atualizar', 'automod', 'botinfo', 'conectar', 'config', 'desconectar', 'destacar', 'pausar', 'ping', 'ponte', 'retomar']);
 
   const bruta = {
     id: 'm1', content: 'oi <@1>', cleanContent: 'oi @fulano', channelId: 'c3', guildId: 'g3',
