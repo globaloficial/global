@@ -82,6 +82,8 @@ async function executarWebhook(destino, payload) {
   return { mensagem, webhookId: String(novo.id) };
 }
 
+const FLAG_SEM_EMBEDS = 1 << 2;
+
 const ROTULO_PLATAFORMA = { fluxer: 'Fluxer', discord: 'Discord' };
 
 function mencaoDoAutorRespondido(origemReply, mencao) {
@@ -109,6 +111,7 @@ async function entregarPorWebhook(destino, entrega) {
   const payload = {
     ...base,
     content: conteudoWebhookDoDestino(base, alvoReply, destino, previaReply, origemReply, nomeReply),
+    flags: FLAG_SEM_EMBEDS,
     allowedMentions: pinga ? { parse: [], users: [origemReply.autorId] } : { parse: [] }
   };
 

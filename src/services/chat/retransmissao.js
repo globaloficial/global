@@ -41,20 +41,40 @@ function encurtarPrevia(texto) {
   return `${base.trimEnd()}...`;
 }
 
-async function previaDaMensagem(message, refId) {
-  try {
-    const original = await message.channel.messages.fetch(String(refId));
-    let texto = limparPrevia(original && original.content);
-    if (!texto && original && Array.isArray(original.embeds) && original.embeds[0]) {
-      const embed = original.embeds[0];
-      texto = limparPrevia(embed.description || (embed.data && embed.data.description));
+async function buscarRespondida(message, refId, origemReply) {
+  const tentativas = [];
+  if (origemReply) tentativas.push([origemReply.plataforma, origemReply.canalId, origemReply.msgId]);
+  tentativas.push([plataformaDaMensagem(message), String(message.channel.id), String(refId)]);
+
+  for (const [plataforma, canalId, msgId] of tentativas) {
+    try {
+      const adaptador = obterPlataforma(plataforma);
+      if (adaptador && adaptador.buscarMensagem) return await adaptador.buscarMensagem(canalId, msgId);
+    } catch (_) {
+      continue;
     }
-    const autor = original && original.author;
-    const nome = autor ? autor.globalName || autor.displayName || autor.username || null : null;
-    return { texto: texto ? encurtarPrevia(texto) : null, nome };
-  } catch (_) {
-    return { texto: null, nome: null };
   }
+  return null;
+}
+
+function nomeDoAutor(original) {
+  const autor = original && original.author;
+  if (!autor) return null;
+  const membro = original.member;
+  const apelido = membro && (membro.displayName || membro.nickname);
+  return apelido || autor.globalName || autor.displayName || autor.username || null;
+}
+
+async function previaDaMensagem(message, refId, origemReply) {
+  const original = await buscarRespondida(message, refId, origemReply);
+  if (!original) return { texto: null, nome: null };
+
+  let texto = limparPrevia(original.content);
+  if (!texto && Array.isArray(original.embeds) && original.embeds[0]) {
+    const embed = original.embeds[0];
+    texto = limparPrevia(embed.description || (embed.data && embed.data.description));
+  }
+  return { texto: texto ? encurtarPrevia(texto) : null, nome: nomeDoAutor(original) };
 }
 
 async function destinosDaPonteAtivos(ponte, guildIdOrigem) {
@@ -163,9 +183,6 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   };
 
   const refId = message.messageReference ? message.messageReference.messageId : null;
-  const dadosReply = refId ? await previaDaMensagem(message, refId) : { texto: null, nome: null };
-  const previaReply = dadosReply.texto;
-  const nomeReply = dadosReply.nome;
   let grupoRespondido = null;
   let origemReply = null;
   const copiasDoRespondido = new Map();
@@ -180,6 +197,10 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
       }
     }
   }
+
+  const dadosReply = refId ? await previaDaMensagem(message, refId, origemReply) : { texto: null, nome: null };
+  const previaReply = dadosReply.texto;
+  const nomeReply = dadosReply.nome;
 
   // Servidor com filtro ativo não recebe o que violar.
   const candidatos = (ponte ? await destinosDaPonteAtivos(ponte, guildIdOrigem) : await listarDestinosAtivos())

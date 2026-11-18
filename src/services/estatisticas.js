@@ -1,4 +1,5 @@
 const { client } = require('../lib/client');
+const { discordClient } = require('../lib/discordClient');
 const Guild = require('../models/Guild');
 const Bloqueio = require('../models/Bloqueio');
 const MensagemGlobal = require('../models/MensagemGlobal');
@@ -23,34 +24,49 @@ function inicioDoDia() {
   return new Date(`${hoje}T00:00:00${DESLOCAMENTO_FUSO}`).getTime();
 }
 
+const ROTULO_DISCORD = ' (Discord)';
+
 async function rankingPor(campo, excluidos) {
   return MensagemGlobal.aggregate([
     { $match: { ...SOMENTE_ORIGEM, [campo]: { $nin: excluidos } } },
-    { $group: { _id: `$${campo}`, mensagens: { $sum: 1 } } },
-    { $sort: { mensagens: -1, _id: 1 } },
+    { $group: { _id: { id: `$${campo}`, plataforma: '$plataforma' }, mensagens: { $sum: 1 } } },
+    { $sort: { mensagens: -1, '_id.id': 1 } },
     { $limit: TAMANHO_RANKING }
   ]);
 }
 
 async function descreverUsuario({ _id, mensagens }) {
+  const doDiscord = _id.plataforma === 'discord';
+  const plataforma = doDiscord ? 'discord' : 'fluxer';
   try {
-    const usuario = await client.users.fetch(_id);
+    const usuario = await (doDiscord ? discordClient : client).users.fetch(_id.id);
     return {
-      nome: usuario.globalName || usuario.username,
+      nome: `${usuario.globalName || usuario.username}${doDiscord ? ROTULO_DISCORD : ''}`,
       avatar: usuario.displayAvatarURL({ size: 128, extension: 'png' }),
+      plataforma,
       mensagens
     };
   } catch {
-    return { nome: 'Usuário desconhecido', avatar: null, mensagens };
+    return { nome: `Usuário desconhecido${doDiscord ? ROTULO_DISCORD : ''}`, avatar: null, plataforma, mensagens };
   }
 }
 
 function descreverServidor({ _id, mensagens }) {
-  const servidor = client.guilds.get(_id);
+  if (_id.plataforma === 'discord') {
+    const servidor = discordClient.guilds.cache.get(_id.id);
+    return {
+      nome: `${servidor ? servidor.name : 'Servidor desconhecido'}${ROTULO_DISCORD}`,
+      icone: obterIconeServidor(servidor),
+      plataforma: 'discord',
+      mensagens
+    };
+  }
 
+  const servidor = client.guilds.get(_id.id);
   return {
     nome: servidor?.name ?? 'Servidor desconhecido',
     icone: obterIconeServidor(servidor),
+    plataforma: 'fluxer',
     mensagens
   };
 }
@@ -58,7 +74,7 @@ function descreverServidor({ _id, mensagens }) {
 async function contarUsuariosAtivos() {
   const [resultado] = await MensagemGlobal.aggregate([
     { $match: SOMENTE_ORIGEM },
-    { $group: { _id: '$autorId' } },
+    { $group: { _id: { id: '$autorId', plataforma: '$plataforma' } } },
     { $count: 'total' }
   ]);
 
@@ -71,9 +87,11 @@ async function gerarEstatisticas() {
     Bloqueio.find({ tipo: 'servidor' }).distinct('id')
   ]);
 
-  const [mensagensHoje, servidores, usuariosAtivos, topUsuarios, topServidores] = await Promise.all([
+  const [mensagensHoje, mensagensHojeDiscord, servidores, servidoresDiscord, usuariosAtivos, topUsuarios, topServidores] = await Promise.all([
     MensagemGlobal.countDocuments({ ...SOMENTE_ORIGEM, criadoEm: { $gte: inicioDoDia() } }),
+    MensagemGlobal.countDocuments({ ...SOMENTE_ORIGEM, plataforma: 'discord', criadoEm: { $gte: inicioDoDia() } }),
     Guild.countDocuments({ canalId: { $ne: null } }),
+    Guild.countDocuments({ canalId: { $ne: null }, plataforma: 'discord' }),
     contarUsuariosAtivos(),
     rankingPor('autorId', usuariosBloqueados),
     rankingPor('guildId', servidoresBloqueados)
@@ -82,7 +100,9 @@ async function gerarEstatisticas() {
   return {
     atualizadoEm: Date.now(),
     mensagensHoje,
+    mensagensHojeDiscord,
     servidores,
+    servidoresDiscord,
     usuariosAtivos,
     topUsuarios: await Promise.all(topUsuarios.map(descreverUsuario)),
     topServidores: topServidores.map(descreverServidor)
