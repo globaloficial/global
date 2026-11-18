@@ -62,7 +62,7 @@ function montarNomeWebhook(nickname, username, discriminator, rotulo, origem) {
 
 function urlDoPerfil(plataforma, autorId) {
   return plataforma === 'discord'
-    ? `https://discord.com/users/${autorId}`
+    ? `https://discordlookup.com/user/${autorId}`
     : `https://web.fluxer.app/users/${autorId}`;
 }
 
