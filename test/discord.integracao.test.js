@@ -65,7 +65,7 @@ test('mensagem do Discord chega no Fluxer com menções neutralizadas e rótulo 
   assert.equal(noFluxer.length, 2);
   for (const c of noFluxer) {
     assert.match(c.opcoes.content, /^oi @usuário :rir:\n-# Servidor g3 — /);
-    assert.match(c.opcoes.content, /https:\/\/discord\.com\/users\//);
+    assert.match(c.opcoes.content, /https:\/\/discordlookup\.com\/user\//);
   }
 
   const noDiscord = discord.copiasVivas();
