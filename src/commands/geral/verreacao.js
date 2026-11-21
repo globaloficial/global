@@ -4,6 +4,7 @@ const MensagemGlobal = require('../../models/MensagemGlobal');
 const ReacaoGlobal = require('../../models/ReacaoGlobal');
 const { obterPlataforma } = require('../../plataformas');
 const { previaDaMensagem } = require('../../services/chat/retransmissao');
+const { urlDoPerfil } = require('../../services/chat/mensagem');
 const { erroSimples, erro } = require('../../util/respostas');
 
 const COR = 0x0330EF;
@@ -25,8 +26,14 @@ async function nomeDoUsuario(plataforma, usuarioId) {
   }
 }
 
-function linkDaMensagem(message, refId) {
-  return `https://discord.com/channels/${message.guildId}/${message.channel.id}/${refId}`;
+function linkDaMensagem(plataforma, message, refId) {
+  const base = plataforma === 'discord' ? 'https://discord.com/channels' : 'https://fluxer.com/channels';
+  return `${base}/${message.guildId}/${message.channel.id}/${refId}`;
+}
+
+function nomeComLink(nome, plataforma, usuarioId) {
+  const limpo = String(nome).replace(/[[\]]/g, '');
+  return `[${limpo}](${urlDoPerfil(plataforma, usuarioId)})`;
 }
 
 module.exports = {
@@ -71,13 +78,14 @@ module.exports = {
     const previa = await previaDaMensagem(message, refId, origem);
     const nomeOrigem = previa.nome || 'Usuário desconhecido';
     const texto = previa.texto || 'mensagem';
-    const trecho = plataforma === 'discord' ? `[${texto}](<${linkDaMensagem(message, refId)}>)` : texto;
-    const cabecalho = `-# ${BARRA}${etiqueta(origem.plataforma, plataforma)}${nomeOrigem}: ${trecho}`;
+    const trecho = `[${texto.replace(/[[\]]/g, '')}](${linkDaMensagem(plataforma, message, refId)})`;
+    const autorOrigem = nomeComLink(nomeOrigem, origem.plataforma, origem.autorId);
+    const cabecalho = `-# ${BARRA}${etiqueta(origem.plataforma, plataforma)}${autorOrigem}: ${trecho}`;
 
     const exibidas = reacoes.slice(0, LIMITE_LINHAS);
     const linhas = await Promise.all(exibidas.map(async (r) => {
       const nome = await nomeDoUsuario(r.plataforma, r.usuarioId);
-      return `${etiqueta(r.plataforma, plataforma)}${nome}: Reagiu com ${r.emoji}`;
+      return `${etiqueta(r.plataforma, plataforma)}${nomeComLink(nome, r.plataforma, r.usuarioId)}: Reagiu com ${r.emoji}`;
     }));
     if (reacoes.length > exibidas.length) linhas.push(`-# e mais ${reacoes.length - exibidas.length} reação(ões)`);
 
