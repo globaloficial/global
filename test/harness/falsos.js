@@ -33,6 +33,7 @@ class Consulta {
   constructor(exec) { this.exec = exec; }
   lean() { return this; }
   select() { return this; }
+  sort() { return this; }
   distinct(campo) {
     const antes = this.exec;
     this.exec = () => [...new Set(antes().map((d) => d[campo]))];
@@ -58,9 +59,10 @@ function criarModel(nome, schema) {
     findOne: (f) => { contar(nome, 'findOne'); return new Consulta(() => { const d = docs().find((x) => casa(x, f)); return d ? { ...d } : null; }); },
     exists: (f) => { contar(nome, 'exists'); return new Consulta(() => (docs().some((d) => casa(d, f)) ? { _id: 1 } : null)); },
     countDocuments: (f) => new Consulta(() => docs().filter((d) => casa(d, f)).length),
-    async updateOne(f, up) {
-      const d = docs().find((x) => casa(x, f));
-      if (d) Object.assign(d, up.$set || up);
+    async updateOne(f, up, opts = {}) {
+      let d = docs().find((x) => casa(x, f));
+      if (!d && opts.upsert) { d = { ...f }; docs().push(d); Object.assign(d, up.$setOnInsert || {}); }
+      if (d) Object.assign(d, up.$set || (up.$setOnInsert ? {} : up));
       disparar('updateOne');
       return { matchedCount: d ? 1 : 0 };
     },

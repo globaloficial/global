@@ -1,4 +1,5 @@
 const { Events, PermissionsBitField } = require('discord.js');
+const { espelharReacao, removerReacao } = require('../../services/reacoes');
 const { discordClient } = require('../../lib/discordClient');
 const { PREFIXO } = require('../../config');
 const Guild = require('../../models/Guild');
@@ -30,10 +31,13 @@ function linkDeConvite() {
   return `https://discord.com/oauth2/authorize?client_id=${discordClient.user.id}&scope=bot%20applications.commands&permissions=${PERMISSOES_CONVITE.bitfield}`;
 }
 
+const COMANDOS_SO_TEXTO = new Set(['verreacao', 'verreação', 'reacao', 'reação', 'inforeacao', 'inforeação']);
+
 function comandoDisponivel(conteudo) {
   if (!conteudo.startsWith(PREFIXO)) return false;
   const nome = conteudo.slice(PREFIXO.length).trim().split(/\s+/)[0];
-  return COMANDOS_SLASH.has((nome || '').toLowerCase());
+  const minusculo = (nome || '').toLowerCase();
+  return COMANDOS_SLASH.has(minusculo) || COMANDOS_SO_TEXTO.has(minusculo);
 }
 
 async function aoCriarMensagem(raw) {
@@ -103,6 +107,20 @@ function registrarEventosDiscord() {
   }));
   discordClient.on(Events.MessageBulkDelete, protegido('SYNC', async (mensagens) => {
     for (const id of mensagens.keys()) await aoApagarOriginal(id);
+  }));
+  const dadosDaReacao = (reacao, usuario) => ({
+    msgId: reacao.message.id,
+    emoji: { id: reacao.emoji.id, name: reacao.emoji.name },
+    usuarioId: usuario && usuario.id,
+    plataforma: 'discord',
+    bot: Boolean(usuario && usuario.bot)
+  });
+  discordClient.on(Events.MessageReactionAdd, protegido('REACAO', async (reacao, usuario) => {
+    await espelharReacao(dadosDaReacao(reacao, usuario));
+  }));
+  discordClient.on(Events.MessageReactionRemove, protegido('REACAO', async (reacao, usuario) => {
+    const dados = dadosDaReacao(reacao, usuario);
+    if (!dados.bot) await removerReacao(dados);
   }));
   discordClient.on(Events.InteractionCreate, tratarInteracao);
   discordClient.on(Events.Error, (e) => log.error('DISCORD', `Erro no cliente: ${errMsg(e)}`, e));

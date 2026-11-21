@@ -326,4 +326,4 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   if (!ponte) await contarMensagemParaAnuncio();
 }
 
-module.exports = { retransmitirMensagemGlobal, cancelarRetransmissao, limparPrevia, encurtarPrevia };
+module.exports = { retransmitirMensagemGlobal, cancelarRetransmissao, limparPrevia, encurtarPrevia, previaDaMensagem };
