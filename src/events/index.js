@@ -13,13 +13,41 @@ const { idDoServidor } = require('../util/ids');
 const { log, descreverContexto } = require('../util/logger');
 const { iniciarStatusRotativo } = require('../services/status');
 const { tratarReacaoPainel } = require('../services/paineis');
+const { espelharReacao, removerReacao } = require('../services/reacoes');
 
 function registrarEventos() {
-  client.on(Events.MessageReactionAdd, (payload) => tratarReacaoPainel(payload));
+  const dadosDaReacao = (payload) => {
+    const usuario = payload.user || (payload.member && payload.member.user) || {};
+    const usuarioId = String(payload.userId || usuario.id || '');
+    const doProprioBot = client.user && usuarioId === String(client.user.id);
+    return {
+      msgId: payload.messageId || (payload.message && payload.message.id),
+      emoji: payload.emoji || (payload.reaction && payload.reaction.emoji),
+      usuarioId,
+      plataforma: 'fluxer',
+      bot: Boolean(usuario.bot) || Boolean(doProprioBot)
+    };
+  };
+  const espelhar = (payload) => espelharReacao(dadosDaReacao(payload))
+    .catch((e) => log.warn('REACAO', `Falha ao espelhar reação: ${e && e.message}`));
+
+  if (Events.MessageReactionRemove) {
+    client.on(Events.MessageReactionRemove, async (payload) => {
+      const dados = dadosDaReacao(payload);
+      if (!dados.bot) await removerReacao(dados).catch(() => {});
+    });
+  }
+
+  client.on(Events.MessageReactionAdd, async (payload) => {
+    if (await tratarReacaoPainel(payload)) return;
+    await espelhar(payload);
+  });
 
   client.on(Events.MessageReactionAddMany, async (payload) => {
     for (const reacao of payload.reactions || []) {
-      await tratarReacaoPainel({ ...payload, userId: reacao.userId, member: reacao.member, emoji: reacao.emoji });
+      const individual = { ...payload, userId: reacao.userId, member: reacao.member, emoji: reacao.emoji };
+      if (await tratarReacaoPainel(individual)) continue;
+      await espelhar(individual);
     }
   });
 

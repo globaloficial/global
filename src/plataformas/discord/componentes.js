@@ -58,8 +58,10 @@ function containerDeEmbed(embed) {
   const json = typeof embed.toJSON === 'function' ? embed.toJSON() : { ...embed };
   const filhos = [];
 
-  const cabecalho = [json.title ? `# ${json.title}` : null, json.description || null].filter(Boolean).join('\n');
+  const [primeiro, ...demais] = String(json.description || '').split('\n---\n');
+  const cabecalho = [json.title ? `# ${json.title}` : null, primeiro || null].filter(Boolean).join('\n');
   if (cabecalho) filhos.push(texto(cabecalho));
+  for (const trecho of demais) filhos.push(separador(), texto(trecho));
 
   const campos = Array.isArray(json.fields) ? json.fields : [];
   if (campos.length) {
