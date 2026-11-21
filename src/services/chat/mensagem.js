@@ -208,5 +208,6 @@ module.exports = {
   montarEmbedJson,
   montarPayloadWebhook,
   montarCorpoEdicaoWebhook,
-  obterIconeServidor
+  obterIconeServidor,
+  urlDoPerfil
 };
