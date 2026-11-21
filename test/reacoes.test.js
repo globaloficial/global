@@ -75,9 +75,9 @@ test('verreação lista quem reagiu e usa a etiqueta da outra plataforma', async
 
   await comando.execute(mensagem('fluxer', 'c1'));
   const descricao = respostas[2].embeds[0].data.description;
-  assert.match(descricao, /\[Discord\] \[dune\]\(https:\/\/discordlookup\.com\/user\/u\): \[kkkkkkkkkkkkk\]\(https:\/\/fluxer\.com\/channels\/b\/cb\/c1\)/);
-  assert.match(descricao, /\[Discord\] \[user-x1\]\(https:\/\/discordlookup\.com\/user\/x1\): Reagiu com 💙/);
-  assert.match(descricao, /\n\[user-x2\]\(https:\/\/web\.fluxer\.app\/users\/x2\): Reagiu com 🤠/);
+    assert.match(descricao, /\[Discord\] \[dune\]\(https:\/\/discord\.com\/users\/u\): \[kkkkkkkkkkkkk\]\(https:\/\/fluxer\.com\/channels\/b\/cb\/c1\)/);
+  assert.match(descricao, /\[Discord\] \[user-x1\]\(https:\/\/discord\.com\/users\/x1\): Reagiu com 💙/);
+  assert.match(descricao, /\n\[user-x2\]\(https:\/\/fluxer\.com\/users\/x2\): Reagiu com 🤠/);
 
   await comando.execute(mensagem('discord', 'c1'));
   assert.match(respostas[3].embeds[0].data.description, /\n---\n/);
