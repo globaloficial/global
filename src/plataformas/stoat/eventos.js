@@ -11,6 +11,7 @@ const { log, errMsg, descreverContexto } = require('../../util/logger');
 const api = require('./api');
 const dados = require('./dados');
 const { criarMensagemCompat } = require('./compat');
+const { tratarReacaoPainelStoat } = require('./paineis');
 
 const CATEGORIAS = ['conexao', 'geral'];
 
@@ -20,6 +21,13 @@ const COMANDOS_STOAT = new Set([
   'pausar',
   'retomar',
   'ponte', 'bridge', 'pontes',
+  'config', 'configurar', 'configurações',
+  'automod', 'moderacao',
+  'botinfo', 'global',
+  'ping',
+  'perfil', 'profile',
+  'destacar', 'selecionar',
+  'report', 'denunciar',
   'ajuda', 'help', 'comandos',
   'verreacao', 'verreação', 'reacao', 'reação', 'inforeacao', 'inforeação'
 ]);
@@ -108,6 +116,7 @@ async function aoEvento(evento) {
       for (const id of evento.ids || []) await aoApagarOriginal(id);
       return;
     case 'MessageReact':
+      if (await tratarReacaoPainelStoat(evento)) return;
       await espelharReacao(await dadosDaReacao(evento));
       return;
     case 'MessageUnreact': {

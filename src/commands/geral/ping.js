@@ -4,10 +4,12 @@ const { discordClient } = require('../../lib/discordClient');
 const { nivelDeRisco } = require('../../services/riscoRateLimit');
 const { EMOJI, SUPORTE } = require('../../util/respostas');
 
-async function medirApi(discord) {
+async function medirApi(plataforma) {
+  const discord = plataforma === 'discord';
   const inicio = Date.now();
   try {
-    if (discord) await discordClient.rest.get('/users/@me');
+    if (plataforma === 'stoat') await require('../../plataformas/stoat/api').euMesmo();
+    else if (discord) await discordClient.rest.get('/users/@me');
     else await client.rest.get('/users/@me');
     return Math.max(0, Date.now() - inicio);
   } catch (_) {
@@ -15,7 +17,9 @@ async function medirApi(discord) {
   }
 }
 
-function medirGateway(discord) {
+function medirGateway(plataforma) {
+  const discord = plataforma === 'discord';
+  if (plataforma === 'stoat') return null;
   try {
     const ping = discord ? discordClient.ws.ping : client.ws.ping;
     return Number.isFinite(ping) && ping >= 0 ? ping : null;
@@ -34,9 +38,9 @@ module.exports = {
   description: 'Mostra a latência do Global e o risco de rate limit.',
 
   async execute(message) {
-    const discord = message.plataforma === 'discord';
-    const api = await medirApi(discord);
-    const gateway = medirGateway(discord);
+    const plataforma = message.plataforma || 'fluxer';
+    const api = await medirApi(plataforma);
+    const gateway = medirGateway(plataforma);
 
     const embed = new EmbedBuilder()
       .setColor(0x0330EF)

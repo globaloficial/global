@@ -11,6 +11,12 @@ const CONTRIBUIDORES = {
     { id: '1547741588283723777', nome: 'supreminhogamer', funcao: 'Code Contributor' },
     { id: '1473035366593507373', nome: 'joão', funcao: 'Financial Contributor' }
   ],
+  stoat: [
+    { id: null, nome: 'xMqR', funcao: 'Head Dev' },
+    { id: null, nome: 'Mubi', funcao: 'Dev' },
+    { id: null, nome: 'supreminhogamer', funcao: 'Code Contributor' },
+    { id: null, nome: 'joão', funcao: 'Financial Contributor' }
+  ],
   discord: [
     { id: '1035619333730205846', nome: 'xMqR', funcao: 'Head Dev' },
     { id: '1160426569156808734', nome: 'Mubi', funcao: 'Dev' },
@@ -38,7 +44,7 @@ module.exports = {
   description: 'Envia as informações principais do Global.',
 
   async execute(message) {
-    const plataforma = message.plataforma === 'discord' ? 'discord' : 'fluxer';
+    const plataforma = CONTRIBUIDORES[message.plataforma] ? message.plataforma : 'fluxer';
     const comunidades = await Guild.countDocuments({ canalId: { $ne: null } });
     const noDiscord = servidoresNoDiscord();
     const dados = [
@@ -53,7 +59,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setColor(0x0330EF)
       .setTitle(`${EMOJI.mundo} Informações do Global`)
-      .setDescription('O Global é um bot do Fluxer e do Discord criado para o público brasileiro. Ele conecta comunidades em um chat global: o que alguém escreve no canal conectado de um servidor é retransmitido para os canais conectados dos outros servidores.')
+      .setDescription('O Global é um bot do Fluxer, do Discord e do Stoat criado para o público brasileiro. Ele conecta comunidades em um chat global: o que alguém escreve no canal conectado de um servidor é retransmitido para os canais conectados dos outros servidores.')
       .addFields(
         { name: `${EMOJI.coracao} Contribuidores:`, value: CONTRIBUIDORES[plataforma].map(linhaDe).join('\n'), inline: true },
         { name: `${EMOJI.janela} Estatísticas`, value: estatisticas, inline: true },

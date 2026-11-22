@@ -1,4 +1,5 @@
 const { client } = require('../../lib/client');
+const { obterPlataforma, nomeDoServidor } = require('../../plataformas');
 const { discordClient } = require('../../lib/discordClient');
 const { COOLDOWN_PERFIL } = require('../../config');
 const User = require('../../models/User');
@@ -19,6 +20,7 @@ async function resolverAlvo(message, args) {
   if (!id) return message.author;
 
   try {
+    if (message.plataforma === 'stoat') return await obterPlataforma('stoat').buscarUsuario(id);
     return await (message.plataforma === 'discord' ? discordClient : client).users.fetch(id);
   } catch {
     return null;
@@ -52,7 +54,7 @@ module.exports = {
       ]);
 
       const servidor = topo
-        ? (client.guilds.get(topo.guildId)?.name ?? discordClient.guilds.cache.get(topo.guildId)?.name ?? 'Servidor desconhecido')
+        ? (client.guilds.get(topo.guildId)?.name ?? discordClient.guilds.cache.get(topo.guildId)?.name ?? nomeDoServidor(topo.guildId, 'stoat') ?? 'Servidor desconhecido')
         : 'Sem atividade recente';
 
       const card = await gerarCardPerfil({

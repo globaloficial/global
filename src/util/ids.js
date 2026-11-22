@@ -4,9 +4,9 @@ function ehSnowflake(valor) {
 
 function extrairId(token) {
   if (!token) return null;
-  const m = token.match(/^<@!?(\d{15,25})>$/);
+  const m = token.match(/^<@!?(\d{15,25}|[0-9A-HJKMNP-TV-Z]{26})>$/);
   if (m) return m[1];
-  return ehSnowflake(token) ? token : null;
+  return ehSnowflake(token) || /^[0-9A-HJKMNP-TV-Z]{26}$/.test(token) ? token : null;
 }
 
 function idDoServidor(message) {

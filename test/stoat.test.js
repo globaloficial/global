@@ -9,7 +9,7 @@ const dados = require('../src/plataformas/stoat/dados');
 const adaptador = require('../src/plataformas/stoat/adaptador');
 const { criarMensagemCompat, emojiDaReacao } = require('../src/plataformas/stoat/compat');
 const { aoEvento, comandoDisponivel } = require('../src/plataformas/stoat/eventos');
-const { corpoDoTexto } = require('../src/plataformas/stoat/texto');
+const { corpoDoTexto, embedsDoTexto } = require('../src/plataformas/stoat/texto');
 const { registrarPlataforma } = require('../src/plataformas');
 const { converterConteudo } = require('../src/util/conversao');
 const Guild = require('../src/models/Guild');
@@ -145,12 +145,16 @@ test('conversão de menções e emojis do Stoat para outras plataformas', () => 
   assert.equal(converterConteudo(texto, 'stoat', 'fluxer'), 'oi @usuário veja #canal :emoji: e @​everyone');
 });
 
-test('texto de comandos sem emojis personalizados e com embeds em texto', () => {
-  const texto = corpoDoTexto({
-    content: '# <:ok:123> Título\n-# nota',
-    embeds: [{ toJSON: () => ({ title: 'T', description: 'D', fields: [{ name: 'N', value: 'V' }] }) }]
-  });
-  assert.equal(texto, '# Título\n_nota_\n\n### T\n\nD\n\n**N**\nV');
+test('texto de comandos troca emojis pelos do Stoat e embeds viram embeds do Stoat', () => {
+  const entrada = {
+    content: '# <:checkboxcirclefill:1562606683371339777> Título <:naoexiste:1>\n-# nota',
+    embeds: [{ toJSON: () => ({ title: '<:heart2fill:1> T', description: 'D', color: 0x0330ef, fields: [{ name: 'N', value: 'V' }] }) }]
+  };
+  assert.equal(corpoDoTexto(entrada), '# :01M82GD5929PMVM83NJ9M9JSBZ: Título\n_nota_');
+  assert.deepEqual(embedsDoTexto(entrada), [{
+    description: '### :01M82G07X7NGDDWEXS1RVP2X8A: T\n\nD\n\n**N**\nV',
+    colour: '#0330ef'
+  }]);
 });
 
 test('reações: unicode passa, emojis de feedback viram unicode, personalizados são ignorados', () => {
@@ -162,7 +166,8 @@ test('reações: unicode passa, emojis de feedback viram unicode, personalizados
 test('comandos liberados no Stoat', () => {
   assert.equal(comandoDisponivel('g.conectar'), true);
   assert.equal(comandoDisponivel('g.verreação'), true);
-  assert.equal(comandoDisponivel('g.perfil'), false);
+  assert.equal(comandoDisponivel('g.perfil'), true);
+  assert.equal(comandoDisponivel('g.ban'), false);
   assert.equal(comandoDisponivel('conectar'), false);
 });
 

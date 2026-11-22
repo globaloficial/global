@@ -2,7 +2,7 @@ const { DONO_ID } = require('../../config');
 const api = require('./api');
 const dados = require('./dados');
 const fila = require('./fila');
-const { corpoDoTexto } = require('./texto');
+const { corpoDoTexto, embedsDoTexto } = require('./texto');
 
 const PERMISSAO_GERENCIAR_CANAL = 1n << 0n;
 const PERMISSAO_GERENCIAR_SERVIDOR = 1n << 1n;
@@ -97,6 +97,8 @@ async function enviarComArquivos(canalId, conteudo, replies) {
   const corpo = {};
   const texto = corpoDoTexto(opcoes);
   if (texto) corpo.content = texto;
+  const embeds = embedsDoTexto(opcoes);
+  if (embeds.length) corpo.embeds = embeds;
   if (replies) corpo.replies = replies;
 
   if (Array.isArray(opcoes.files) && opcoes.files.length) {
@@ -108,7 +110,7 @@ async function enviarComArquivos(canalId, conteudo, replies) {
     if (ids.length) corpo.attachments = ids;
   }
 
-  if (!corpo.content && !corpo.attachments) corpo.content = '​';
+  if (!corpo.content && !corpo.attachments && !corpo.embeds) corpo.content = '​';
   return api.enviarMensagem(canalId, corpo);
 }
 

@@ -1,5 +1,6 @@
+const { emojisParaStoat } = require('./emojis');
+
 const CONTEUDO_MAX = 2000;
-const EMOJI_PERSONALIZADO = /<a?:[\w~]+:\d+>/g;
 
 function limitar(texto, maximo) {
   const valor = String(texto);
@@ -7,8 +8,7 @@ function limitar(texto, maximo) {
 }
 
 function limparTexto(texto) {
-  return String(texto || '')
-    .replace(EMOJI_PERSONALIZADO, '')
+  return emojisParaStoat(texto)
     .split('\n')
     .map((linha) => {
       const semEspacos = linha.replace(/[ \t]{2,}/g, ' ').replace(/^(#{1,3}) +/, '$1 ').trimEnd();
@@ -19,7 +19,7 @@ function limparTexto(texto) {
     .trim();
 }
 
-function embedParaTexto(embed) {
+function embedParaStoat(embed) {
   const json = embed && typeof embed.toJSON === 'function' ? embed.toJSON() : (embed || {});
   const partes = [];
   if (json.title) partes.push(`### ${json.title}`);
@@ -28,17 +28,20 @@ function embedParaTexto(embed) {
     partes.push(`**${campo.name}**\n${campo.value}`);
   }
   if (json.footer && json.footer.text) partes.push(`_${json.footer.text}_`);
-  return partes.join('\n\n');
+  const resultado = { description: limitar(limparTexto(partes.join('\n\n')), CONTEUDO_MAX) };
+  const cor = corHex(json.color);
+  if (cor) resultado.colour = cor;
+  return resultado;
 }
 
 function corpoDoTexto(conteudo) {
   const opcoes = typeof conteudo === 'string' ? { content: conteudo } : { ...(conteudo || {}) };
-  const partes = [];
-  if (opcoes.content) partes.push(opcoes.content);
-  if (Array.isArray(opcoes.embeds)) {
-    for (const embed of opcoes.embeds) partes.push(embedParaTexto(embed));
-  }
-  return limitar(limparTexto(partes.filter(Boolean).join('\n\n')), CONTEUDO_MAX);
+  return limitar(limparTexto(opcoes.content || ''), CONTEUDO_MAX);
+}
+
+function embedsDoTexto(conteudo) {
+  const embeds = conteudo && typeof conteudo === 'object' ? conteudo.embeds : null;
+  return Array.isArray(embeds) ? embeds.slice(0, 10).map(embedParaStoat) : [];
 }
 
 function corHex(numero) {
@@ -47,4 +50,4 @@ function corHex(numero) {
   return `#${Math.max(0, Math.min(0xffffff, valor)).toString(16).padStart(6, '0')}`;
 }
 
-module.exports = { CONTEUDO_MAX, limitar, limparTexto, embedParaTexto, corpoDoTexto, corHex };
+module.exports = { CONTEUDO_MAX, limitar, limparTexto, embedParaStoat, corpoDoTexto, embedsDoTexto, corHex };

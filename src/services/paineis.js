@@ -192,6 +192,15 @@ async function abrirPainel(message, tipo, guildId) {
       return false;
     }
   }
+  if (message.plataforma === 'stoat') {
+    try {
+      const { abrirPainelStoat } = require('../plataformas/stoat/paineis');
+      return await abrirPainelStoat(message, tipo, definicao.embeds(atual || {}, 'stoat'), BOTOES[tipo].map((b) => b.chave), guildId);
+    } catch (e) {
+      log.error('PAINEL', `Falha ao publicar o painel ${tipo}: ${errMsg(e)}`, e);
+      return false;
+    }
+  }
   let painel = null;
   try {
     painel = await message.channel.send({ embeds: definicao.embeds(atual || {}), allowedMentions: { parse: [] } });
@@ -285,7 +294,7 @@ async function tratarReacaoPainel(payload) {
   }
 }
 
-async function alterarPainelPorChave(tipo, chaveAcao, guildId) {
+async function alterarPainelPorChave(tipo, chaveAcao, guildId, plataforma = 'discord') {
   const definicao = TIPOS[tipo];
   const emoji = EMOJI_POR_CHAVE[chaveAcao];
   if (!definicao || !emoji) return null;
@@ -294,7 +303,7 @@ async function alterarPainelPorChave(tipo, chaveAcao, guildId) {
   if (!alteracao) return null;
   await Guild.updateOne({ guildId: String(guildId) }, { $set: alteracao }, { upsert: true });
   const atualizado = (await Guild.findOne({ guildId: String(guildId) }).lean()) || {};
-  return { embeds: definicao.embeds(atualizado, 'discord'), botoes: null };
+  return { embeds: definicao.embeds(atualizado, plataforma), botoes: null };
 }
 
 module.exports = { abrirPainel, tratarReacaoPainel, embedConfig, embedAutomod, botoesDoPainel, alterarPainelPorChave };
