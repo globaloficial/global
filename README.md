@@ -4,7 +4,7 @@
 
 # Global
 
-Um chat só para o Fluxer e o Discord.
+Um chat só para o Fluxer, o Discord e o Stoat.
 
 [![Site](https://img.shields.io/badge/site-globalbot.site-0330ef?style=flat-square&labelColor=0B0B0B)](https://globalbot.site)
 [![Fluxer](https://img.shields.io/badge/Fluxer-adicionar-0330ef?style=flat-square&labelColor=0B0B0B)](https://web.fluxer.app/oauth2/authorize?client_id=1562253521942745089&scope=bot&permissions=4503600164629568)
@@ -14,7 +14,7 @@ Um chat só para o Fluxer e o Discord.
 
 <br>
 
-<img src=".github/assets/readme/chat.png" alt="Mensagens do Fluxer e do Discord chegando no Global" width="640">
+<img src=".github/assets/readme/chat.png" alt="Mensagens do Fluxer, do Discord e do Stoat chegando no Global" width="640">
 
 </div>
 
@@ -27,7 +27,7 @@ Um chat só para o Fluxer e o Discord.
 <h2 align="center">Sobre</h2>
 
 <p align="center">
-O Global junta comunidades do <a href="https://fluxer.app">Fluxer</a> e do Discord num mesmo chat.<br>
+O Global junta comunidades do <a href="https://fluxer.app">Fluxer</a>, do Discord e do Stoat num mesmo chat.<br>
 Cada servidor escolhe um canal, e o que é escrito ali aparece nos canais dos outros.<br>
 Editar, apagar e responder também funciona entre os servidores.
 </p>
@@ -59,7 +59,7 @@ Editar, apagar e responder também funciona entre os servidores.
 
 <br>
 
-<h2 align="center">Fluxer e Discord</h2>
+<h2 align="center">Fluxer, Discord e Stoat</h2>
 
 <p align="center">
 Os dois bots rodam no mesmo processo.<br>
@@ -71,7 +71,7 @@ Cada plataforma tem a sua fila de envio, então o limite de uma não segura a ou
 <h2 align="center">Pontes privadas</h2>
 
 <p align="center">
-Quem não quer usar o chat global pode ligar canais de servidores amigos, entre Fluxer e Discord.<br>
+Quem não quer usar o chat global pode ligar canais de servidores amigos, entre Fluxer, Discord e Stoat.<br>
 As mensagens ficam só dentro da ponte.
 </p>
 
@@ -145,6 +145,8 @@ cp .env.example .env
 
 Para o Discord, ative a **Message Content Intent** no [Developer Portal](https://discord.com/developers/applications). O bot também precisa de **Gerenciar Webhooks** e **Gerenciar Mensagens** nos canais conectados.
 
+Para o Stoat, crie um bot nas configurações da sua conta e coloque o token em `STOAT_TOKEN`. O bot precisa das permissões de enviar mensagens, inserir embeds, enviar arquivos, reagir, gerenciar mensagens e **Masquerade** nos canais conectados.
+
 <br>
 
 <h2 align="center">Execução</h2>
@@ -181,7 +183,7 @@ global/
 ├── src/
 │   ├── commands/        conexao, geral, staff e dono
 │   ├── events/          eventos do Fluxer
-│   ├── plataformas/     adaptadores do Fluxer e do Discord
+│   ├── plataformas/     adaptadores do Fluxer, do Discord e do Stoat
 │   ├── services/        filtros, retransmissão, sincronização, pontes e entrega
 │   ├── models/          Guild, MensagemGlobal, Ponte e outros
 │   ├── handlers/        carregamento e execução de comandos

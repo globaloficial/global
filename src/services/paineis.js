@@ -107,7 +107,7 @@ function embedAutomod(config = {}, plataforma = 'fluxer') {
       },
       {
         name: `${chave(links)} Filtro de Links:`,
-        value: `${links ? 'Ativo' : 'Desativado'} *(Filtra links de outros servidores, incluindo Fluxer e Discord, o filtro pode acabar cometendo erros)*.`,
+        value: `${links ? 'Ativo' : 'Desativado'} *(Filtra links de outros servidores, incluindo Fluxer, Discord e Stoat, o filtro pode acabar cometendo erros)*.`,
         inline: true
       },
       {

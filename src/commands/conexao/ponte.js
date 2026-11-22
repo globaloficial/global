@@ -16,7 +16,7 @@ const {
   encerrarPonte
 } = require('../../services/pontes');
 
-const ROTULO_PLATAFORMA = { fluxer: 'Fluxer', discord: 'Discord' };
+const ROTULO_PLATAFORMA = { fluxer: 'Fluxer', discord: 'Discord', stoat: 'Stoat' };
 
 const ERROS = {
   'canal-ocupado': (canalId) => erro('Canal ocupado', `O canal <#${canalId}> já tem uma conexão ativa, use \`${PREFIXO}desconectar\` antes de entrar numa ponte.`),
@@ -42,7 +42,7 @@ function descreverParticipante(p) {
 function ajuda() {
   return [
     `# ${EMOJI.privado} Pontes privadas`,
-    'Ligue canais de servidores amigos, do Fluxer ou do Discord, sem passar pelo chat global.',
+    'Ligue canais de servidores amigos, do Fluxer, do Discord ou do Stoat, sem passar pelo chat global.',
     '',
     `**Criar:** \`${PREFIXO}ponte criar [nome]\``,
     `**Entrar:** \`${PREFIXO}ponte entrar <código>\``,
