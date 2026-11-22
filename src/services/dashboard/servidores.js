@@ -15,7 +15,7 @@ const COR_HEX = /^#?([0-9a-fA-F]{6})$/;
 
 const cacheLista = new Map();
 
-const BOOLEANOS = ['pausado', 'filtrarPalavroes', 'filtrarLinks', 'ocultarServidor', 'ocultarPerfil', 'mostrarIcone'];
+const BOOLEANOS = ['pausado', 'filtrarPalavroes', 'filtrarLinks', 'ocultarServidor', 'ocultarPerfil', 'ocultarInfoRecebida', 'mostrarIcone'];
 
 function corParaHex(cor) {
   return typeof cor === 'number' ? `#${cor.toString(16).padStart(6, '0')}` : null;
@@ -32,6 +32,7 @@ function visaoDaConfig(config, bloqueado) {
     filtrarLinks: Boolean(c.filtrarLinks),
     ocultarServidor: Boolean(c.ocultarServidor),
     ocultarPerfil: Boolean(c.ocultarPerfil),
+    ocultarInfoRecebida: Boolean(c.ocultarInfoRecebida),
     mostrarIcone: Boolean(c.mostrarIcone),
     modoEnvio: c.modoEnvio || MODO_ENVIO,
     webhookAtivo: Boolean(c.webhookId) && c.webhookCanalId === c.canalId,

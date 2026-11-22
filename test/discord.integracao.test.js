@@ -40,13 +40,13 @@ test('mensagem do Fluxer chega nos servidores Fluxer e Discord com rótulo de pl
 
   const noFluxer = fluxer.copiasVivas();
   assert.equal(noFluxer.length, 1);
-  assert.match(noFluxer[0].opcoes.content, /^olá <:heart2fill:123> mundo\n-# Servidor g1 — /);
+  assert.match(noFluxer[0].opcoes.content, /^olá <:heart2fill:123> mundo\n-# Servidor g1 · /);
 
   const noDiscord = discord.copiasVivas();
   assert.equal(noDiscord.length, 2);
   for (const c of noDiscord) {
     assert.ok(c.webhookId);
-    assert.match(c.opcoes.content, /^olá :heart2fill: mundo\n-# Servidor g1 — /);
+    assert.match(c.opcoes.content, /^olá :heart2fill: mundo\n-# Servidor g1 · /);
     assert.deepEqual(c.opcoes.allowedMentions, { parse: [] });
   }
 
@@ -64,13 +64,13 @@ test('mensagem do Discord chega no Fluxer com menções neutralizadas e rótulo 
   const noFluxer = fluxer.copiasVivas();
   assert.equal(noFluxer.length, 2);
   for (const c of noFluxer) {
-    assert.match(c.opcoes.content, /^oi @usuário :rir:\n-# Servidor g3 — /);
+    assert.match(c.opcoes.content, /^oi @usuário :rir:\n-# Servidor g3 · /);
     assert.match(c.opcoes.content, /https:\/\/discord\.com\/users\//);
   }
 
   const noDiscord = discord.copiasVivas();
   assert.equal(noDiscord.length, 1);
-  assert.match(noDiscord[0].opcoes.content, /^oi <@123456789012345678> <:rir:999>\n-# Servidor g3 — /);
+  assert.match(noDiscord[0].opcoes.content, /^oi <@123456789012345678> <:rir:999>\n-# Servidor g3 · /);
 });
 
 test('Discord usa webhook com nome seguro, reaproveita o webhook e prefixa reply com link', async () => {
@@ -82,7 +82,7 @@ test('Discord usa webhook com nome seguro, reaproveita o webhook e prefixa reply
   assert.equal(copias.length, 2);
   assert.equal(discord.webhooksCriados, 2);
   for (const c of copias) {
-    assert.match(c.opcoes.content, /^primeira\n-# Servidor g1 — \[Ver perfil\]/);
+    assert.match(c.opcoes.content, /^primeira\n-# Servidor g1 · \[Ver perfil\]/);
     assert.deepEqual(c.opcoes.allowedMentions, { parse: [] });
   }
 

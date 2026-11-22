@@ -100,7 +100,8 @@ async function carregarDestinosAtivos() {
       webhookId: g.webhookId || null,
       webhookToken: g.webhookToken || null,
       webhookCanalId: g.webhookCanalId || null,
-      modoEnvio: g.modoEnvio || null
+      modoEnvio: g.modoEnvio || null,
+      ocultarInfoRecebida: !!g.ocultarInfoRecebida
     }));
 }
 

@@ -39,8 +39,9 @@ function montarStatus(config) {
     `${config.filtrarLinks ? LIGADO : DESLIGADO} **Filtro de links**`,
     `${config.ocultarServidor ? DESLIGADO : LIGADO} **Nome do servidor** nas mensagens`,
     `${config.ocultarPerfil ? DESLIGADO : LIGADO} **Link do perfil** nas mensagens`,
+    `${config.ocultarInfoRecebida ? DESLIGADO : LIGADO} **Info dos outros servidores** nas mensagens que chegam aqui`,
     `-# Use ${PREFIXO}config modo embed|webhook para trocar como as mensagens chegam aqui.`,
-    `-# Use ${PREFIXO}config servidor mostrar|ocultar e ${PREFIXO}config perfil mostrar|ocultar.`,
+    `-# Use ${PREFIXO}config servidor mostrar|ocultar, ${PREFIXO}config perfil mostrar|ocultar e ${PREFIXO}config recebidas mostrar|ocultar.`,
     `-# Altere os filtros com \`${PREFIXO}automod\` e pause com \`${PREFIXO}pausar\`.`
   ].filter((linha) => linha !== null).join('\n');
 }
@@ -87,7 +88,7 @@ module.exports = {
       return;
     }
 
-    const campo = { servidor: 'ocultarServidor', perfil: 'ocultarPerfil' }[(args[0] || '').toLowerCase()];
+    const campo = { servidor: 'ocultarServidor', perfil: 'ocultarPerfil', recebidas: 'ocultarInfoRecebida' }[(args[0] || '').toLowerCase()];
     const acao = (args[1] || '').toLowerCase();
     const ocultar = ['ocultar', 'esconder', 'off'].includes(acao) ? true : ['mostrar', 'exibir', 'on'].includes(acao) ? false : null;
 
@@ -100,7 +101,7 @@ module.exports = {
     if (campo && ocultar !== null) {
       await Guild.findOneAndUpdate({ guildId: String(guildId) }, { [campo]: ocultar }, { upsert: true, setDefaultsOnInsert: true });
       log.ok('CONFIG', `${campo} = ${ocultar} | ${descreverContexto(message)}`);
-      await message.reply(`<:checkboxcirclefill:1562606683371339777> ${campo === 'ocultarServidor' ? 'Nome do servidor' : 'Link do perfil'} ${ocultar ? 'oculto' : 'visível'} nas mensagens enviadas daqui.`);
+      await message.reply(`<:checkboxcirclefill:1562606683371339777> ${{ ocultarServidor: 'Nome do servidor', ocultarPerfil: 'Link do perfil', ocultarInfoRecebida: 'Info dos outros servidores' }[campo]} ${ocultar ? 'oculto' : 'visível'} ${campo === 'ocultarInfoRecebida' ? 'nas mensagens que chegam aqui' : 'nas mensagens enviadas daqui'}.`);
       return;
     }
 
