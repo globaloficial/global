@@ -11,6 +11,7 @@ const { iniciarApiPublica } = require('./src/services/apiPublica');
 const { log } = require('./src/util/logger');
 
 let pararDiscord = null;
+let pararStoat = null;
 
 async function iniciarDiscord() {
   const token = process.env.DISCORD_TOKEN;
@@ -28,6 +29,22 @@ async function iniciarDiscord() {
   }
 }
 
+async function iniciarStoat() {
+  const token = process.env.STOAT_TOKEN;
+  if (!token) {
+    log.info('STOAT', 'STOAT_TOKEN não definido, a ponte com o Stoat está desativada.');
+    return;
+  }
+
+  try {
+    const stoat = require('./src/plataformas/stoat');
+    pararStoat = stoat.encerrarStoat;
+    await stoat.iniciarStoat(token);
+  } catch (e) {
+    log.error('STOAT', 'Falha ao iniciar o bot do Stoat, as outras plataformas continuam funcionando', e);
+  }
+}
+
 async function main(token) {
   await conectarBanco();
   await executarMigracoes();
@@ -42,6 +59,7 @@ async function main(token) {
   await client.login(token);
   iniciarApiPublica();
   await iniciarDiscord();
+  await iniciarStoat();
 }
 
 process.on('unhandledRejection', (e) => log.error('PROCESSO', 'Promise rejeitada sem tratamento', e));
@@ -50,6 +68,7 @@ process.on('uncaughtException', (e) => log.error('PROCESSO', 'Exceção não cap
 async function encerrar(sinal) {
   log.info('BOT', `Recebido ${sinal}, encerrando...`);
   if (pararDiscord) await pararDiscord();
+  if (pararStoat) await pararStoat();
   try {
     await desconectarBanco();
   } catch (_) {

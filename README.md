@@ -131,6 +131,7 @@ cp .env.example .env
 | `TOKEN` | Sim | nenhum |
 | `MONGODB_URI` | Não | `mongodb://127.0.0.1:27017/global` |
 | `DISCORD_TOKEN` | Não | vazio, e a ponte com o Discord fica desligada |
+| `STOAT_TOKEN` | Não | vazio, e a ponte com o Stoat fica desligada |
 | `NSFW_URL` | Não | `http://localhost:3000` |
 | `NSFW_API_KEY` | Não | vazio |
 | `ENTREGA_CONCORRENCIA` | Não | `10` |
