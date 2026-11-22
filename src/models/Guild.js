@@ -12,6 +12,7 @@ const guildSchema = new Schema(
     cor: { type: Number, default: null },
     ocultarServidor: { type: Boolean, default: false },
     ocultarPerfil: { type: Boolean, default: false },
+    ocultarInfoRecebida: { type: Boolean, default: false },
     mostrarIcone: { type: Boolean, default: false },
     webhookId: { type: String, default: null },
     webhookToken: { type: String, default: null, select: false },

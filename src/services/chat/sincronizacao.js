@@ -5,7 +5,8 @@ const { ehStaffOuDono } = require('../permissoes');
 const { carregarCredenciais } = require('../webhooks');
 const { converterConteudo } = require('../../util/conversao');
 const { obterPlataforma, plataformaDaMensagem, apagarCopia } = require('../../plataformas');
-const { infoMensagem } = require('./mensagem');
+const { infoMensagem, semInfoDoServidor } = require('./mensagem');
+const Guild = require('../../models/Guild');
 const { erroPermanente } = require('../entrega/transporte');
 
 async function ehMensagemOriginal(id) {
@@ -73,16 +74,20 @@ async function sincronizarEdicao(antiga, nova) {
   }
 
   const credenciais = await carregarCredenciais(copias.filter((c) => c.webhookId));
+  const guildsSemInfo = ehPonte
+    ? new Set()
+    : new Set((await Guild.find({ guildId: { $in: copias.map((c) => c.guildId) }, ocultarInfoRecebida: true }).select('guildId').lean()).map((g) => g.guildId));
 
   const edicoes = new Map();
-  const edicaoPara = (plataforma) => {
-    if (!edicoes.has(plataforma)) {
-      edicoes.set(plataforma, obterPlataforma(plataforma).montarEdicao(completa, info, {
+  const edicaoPara = (plataforma, semInfo = false) => {
+    const chaveEdicao = `${plataforma}:${semInfo ? 1 : 0}`;
+    if (!edicoes.has(chaveEdicao)) {
+      edicoes.set(chaveEdicao, obterPlataforma(plataforma).montarEdicao(completa, semInfo ? semInfoDoServidor(info) : info, {
         conteudo: converterConteudo(completa.content, origem, plataforma),
         rotulo: origem === plataforma ? null : info.rotuloOrigem
       }));
     }
-    return edicoes.get(plataforma);
+    return edicoes.get(chaveEdicao);
   };
 
   const resultados = await Promise.allSettled(copias.map(async (c) => {
@@ -92,7 +97,7 @@ async function sincronizarEdicao(antiga, nova) {
     }
     const adaptador = obterPlataforma(c.plataforma);
     if (!adaptador) return 'sem-plataforma';
-    return adaptador.editarCopia(c, edicaoPara(adaptador.nome), credenciais);
+    return adaptador.editarCopia(c, edicaoPara(adaptador.nome, guildsSemInfo.has(c.guildId)), credenciais);
   }));
 
   const contar = (valor) => resultados.filter((x) => x.status === 'fulfilled' && x.value === valor).length;

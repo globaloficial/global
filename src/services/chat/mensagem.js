@@ -136,7 +136,7 @@ function montarConteudoWebhook(message, info, links = [], opcoes = {}) {
   const partes = [];
   if (!info.ocultarServidor) partes.push(escaparMarkdown(info.nomeServidor));
   if (!info.ocultarPerfil && info.perfilUrl) partes.push(`[Ver perfil](<${info.perfilUrl}>)`);
-  const rodape = partes.length ? `-# ${partes.join(' — ')}` : '';
+  const rodape = partes.length ? `-# ${partes.join(' · ')}` : '';
   const texto = [conteudo || '', ...links].filter(Boolean).join('\n');
   const limite = CONTEUDO_MAX - rodape.length - RESERVA_MENCAO;
   const corpo = texto.length > limite ? `${texto.slice(0, limite - 1)}…` : texto;
@@ -203,8 +203,13 @@ function montarEmbedJson(message, info, opcoes = {}) {
   return embed;
 }
 
+function semInfoDoServidor(info) {
+  return { ...info, ocultarServidor: true, ocultarPerfil: true };
+}
+
 module.exports = {
   infoMensagem,
+  semInfoDoServidor,
   montarEmbedGlobal,
   montarEmbedJson,
   montarPayloadWebhook,

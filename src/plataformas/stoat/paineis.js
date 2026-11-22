@@ -11,6 +11,7 @@ const EMOJI_DA_CHAVE = {
   modo: 'chat1fill',
   icone: 'imagefill',
   info: 'information2fill',
+  recebidas: 'windowfill',
   palavroes: 'chatprivatefill',
   links: 'externallinkfill'
 };

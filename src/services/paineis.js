@@ -14,6 +14,7 @@ const REACAO_ICONE = '<:imagefill:1569878138362535939>';
 const REACAO_INFO = EMOJI.info;
 const REACAO_PALAVROES = EMOJI.privado;
 const REACAO_LINKS = EMOJI.externo;
+const REACAO_RECEBIDAS = EMOJI.janela;
 
 const PADRAO_CUSTOMIZADO = /^<a?:([^:]+):(\d+)>$/;
 
@@ -70,7 +71,8 @@ function embedConfig(config = {}, plataforma = 'fluxer') {
       { name: `${chave(webhook && !!config.webhookId)} Estado do Webhook:`, value: estadoDoWebhook(config), inline: true },
       { name: `${chave(config.filtrarPalavroes !== false)} Filtro de Palavrões:`, value: `${config.filtrarPalavroes !== false ? 'Ativo' : 'Desativado'} *(por padrão)*`, inline: true },
       { name: `${chave(!webhook && !!config.mostrarIcone)} Ícone do Servidor (Embed):`, value: icone, inline: true },
-      { name: `${chave(infoVisivel(config))} Informações de Mensagens:`, value: informacoes, inline: true }
+      { name: `${chave(infoVisivel(config))} Informações de Mensagens:`, value: informacoes, inline: true },
+      { name: `${chave(!config.ocultarInfoRecebida)} Info. dos Outros Servidores:`, value: `${config.ocultarInfoRecebida ? 'Oculta' : 'Visível'} *(nome do servidor e link do perfil nas mensagens que chegam neste canal, oculte para deixar cada mensagem mais limpa)*`, inline: true }
     );
 
   const guia = new EmbedBuilder()
@@ -80,6 +82,7 @@ function embedConfig(config = {}, plataforma = 'fluxer') {
       { name: 'Alterar Modo de Envio:', value: `${verbo(discord, REACAO_MODO)} para habilitar/desabilitar`, inline: true },
       { name: 'Alterar Ícone de Servidores:', value: `${verbo(discord, REACAO_ICONE)} para habilitar/desabilitar`, inline: true },
       { name: 'Alterar Info. de Mensagens:', value: `${verbo(discord, REACAO_INFO)} para habilitar/desabilitar`, inline: true },
+      { name: 'Info. dos Outros Servidores:', value: `${verbo(discord, REACAO_RECEBIDAS)} para mostrar/ocultar nas mensagens que chegam aqui`, inline: true },
       { name: 'Remover a conexão global:', value: `\`${PREFIXO}desconectar\``, inline: true },
       { name: 'Alterar Filtro de Palavrões:', value: `\`${PREFIXO}automod\``, inline: true },
       { name: 'Alterar Filtro de Links:', value: `\`${PREFIXO}automod\``, inline: true }
@@ -130,7 +133,8 @@ const BOTOES = {
   config: [
     { chave: 'modo', rotulo: 'Modo de envio', emoji: REACAO_MODO },
     { chave: 'icone', rotulo: 'Ícone', emoji: REACAO_ICONE },
-    { chave: 'info', rotulo: 'Informações', emoji: REACAO_INFO }
+    { chave: 'info', rotulo: 'Informações', emoji: REACAO_INFO },
+    { chave: 'recebidas', rotulo: 'Outros servidores', emoji: REACAO_RECEBIDAS }
   ],
   automod: [
     { chave: 'palavroes', rotulo: 'Palavrões', emoji: REACAO_PALAVROES },
@@ -142,6 +146,7 @@ const EMOJI_POR_CHAVE = {
   modo: REACAO_MODO,
   icone: REACAO_ICONE,
   info: REACAO_INFO,
+  recebidas: REACAO_RECEBIDAS,
   palavroes: REACAO_PALAVROES,
   links: REACAO_LINKS
 };
@@ -158,10 +163,11 @@ function botoesDoPainel(tipo, userId) {
 const TIPOS = {
   config: {
     embeds: embedConfig,
-    reacoes: [REACAO_MODO, REACAO_ICONE, REACAO_INFO],
+    reacoes: [REACAO_MODO, REACAO_ICONE, REACAO_INFO, REACAO_RECEBIDAS],
     alteracao(emoji, config) {
       if (mesmoEmoji(emoji, REACAO_MODO)) return { modoEnvio: modoDoServidor(config) === 'webhook' ? 'embed' : 'webhook' };
       if (mesmoEmoji(emoji, REACAO_ICONE)) return { mostrarIcone: !config.mostrarIcone };
+      if (mesmoEmoji(emoji, REACAO_RECEBIDAS)) return { ocultarInfoRecebida: !config.ocultarInfoRecebida };
       if (mesmoEmoji(emoji, REACAO_INFO)) {
         const esconder = infoVisivel(config);
         return { ocultarServidor: esconder, ocultarPerfil: esconder };

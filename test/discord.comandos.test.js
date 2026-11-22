@@ -86,7 +86,7 @@ test('/config no Discord abre o painel com botões e reflete o modo de envio', a
   assert.match(textoDe(resposta), /Webhook/);
   assert.doesNotMatch(textoDe(resposta), /Reaja/);
   const ids = JSON.stringify(resposta.components).match(/painel\|config\|\w+\|u-adm/g);
-  assert.equal(ids.length, 3);
+  assert.equal(ids.length, 4);
 });
 
 test('slash registra só comandos permitidos e a mensagem compat mantém permissão e conteúdo limpo', async () => {

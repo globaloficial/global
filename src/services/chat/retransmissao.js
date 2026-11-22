@@ -18,7 +18,7 @@ const { carregarCredenciais } = require('../webhooks');
 const { ErroSemWebhook } = require('../entrega/semWebhook');
 const { avisarSemWebhook } = require('../avisoWebhook');
 const { limitar } = require('../../util/conversao');
-const { infoMensagem } = require('./mensagem');
+const { infoMensagem, semInfoDoServidor } = require('./mensagem');
 const { prepararAnexos } = require('./anexos');
 
 const cooldownUsuarios = new Map();
@@ -169,17 +169,18 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   };
 
   const preparos = new Map();
-  const preparoDe = (plataforma) => {
-    if (!preparos.has(plataforma)) {
-      preparos.set(plataforma, obterPlataforma(plataforma).criarPreparo({
+  const preparoDe = (plataforma, semInfo = false) => {
+    const chavePreparo = `${plataforma}:${semInfo ? 1 : 0}`;
+    if (!preparos.has(chavePreparo)) {
+      preparos.set(chavePreparo, obterPlataforma(plataforma).criarPreparo({
         message,
-        info,
+        info: semInfo ? semInfoDoServidor(info) : info,
         obterAnexos,
         conteudo: converterConteudo(message.content, origem, plataforma),
         rotulo: origem === plataforma ? null : info.rotuloOrigem
       }));
     }
-    return preparos.get(plataforma);
+    return preparos.get(chavePreparo);
   };
 
   const refId = message.messageReference ? message.messageReference.messageId : null;
@@ -232,7 +233,7 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
         return adaptador.entregar(destino, {
           message,
           info,
-          preparo: preparoDe(adaptador.nome),
+          preparo: preparoDe(adaptador.nome, !ponte && Boolean(destino.ocultarInfoRecebida)),
           mencao,
           origemReply,
           alvoReply,

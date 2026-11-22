@@ -212,3 +212,20 @@ test('mensagem do Stoat é retransmitida para o outro destino e ignora bots e ma
   await aoEvento({ type: 'Message', ...raw, _id: 'ORIGEM3', masquerade: { name: 'x' } });
   assert.equal(chamadas.length, antes);
 });
+
+test('servidor com ocultarInfoRecebida recebe a mensagem sem nome do servidor e sem ver perfil', async () => {
+  const chamadas = instalarFetch((c) => (c.metodo === 'POST' ? resposta(200, { _id: `LIMPA${chamadas.length}` }) : resposta(404, {})));
+  registrarPlataforma(adaptador);
+  const { retransmitirMensagemGlobal } = require('../src/services/chat/retransmissao');
+
+  H.popularDestinos(3);
+  await Guild.updateOne({ guildId: 'g2' }, { $set: { plataforma: 'stoat', canalId: '01HXE00000000000000000000E', ocultarInfoRecebida: true, modoEnvio: 'webhook' } });
+  await Guild.updateOne({ guildId: 'g3' }, { $set: { plataforma: 'stoat', canalId: '01HXG00000000000000000000G', modoEnvio: 'webhook' } });
+
+  await retransmitirMensagemGlobal({ ...H.mensagemDe({ guildIdx: 1, conteudo: 'oi pessoal' }), plataforma: 'fluxer' });
+
+  const limpa = chamadas.find((c) => c.url.includes('01HXE00000000000000000000E'));
+  const completa = chamadas.find((c) => c.url.includes('01HXG00000000000000000000G'));
+  assert.equal(limpa.corpo.content, 'oi pessoal');
+  assert.match(completa.corpo.content, /^oi pessoal\n\*Servidor g1 · \[Ver perfil\]/);
+});
