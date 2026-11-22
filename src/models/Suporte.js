@@ -11,7 +11,7 @@ const mensagemSchema = new Schema({
 
 const suporteSchema = new Schema({
   numero: { type: Number, required: true, unique: true },
-  plataforma: { type: String, enum: ['fluxer', 'discord'], required: true },
+  plataforma: { type: String, enum: ['fluxer', 'discord', 'stoat'], required: true },
   autorId: { type: String, required: true, index: true },
   autorNome: { type: String, required: true },
   autorAvatar: { type: String, default: null },

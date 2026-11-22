@@ -3,7 +3,7 @@ const { Schema, model } = require('mongoose');
 const participanteSchema = new Schema(
   {
     guildId: { type: String, required: true },
-    plataforma: { type: String, enum: ['fluxer', 'discord'], default: 'fluxer' },
+    plataforma: { type: String, enum: ['fluxer', 'discord', 'stoat'], default: 'fluxer' },
     canalId: { type: String, required: true },
     nomeServidor: { type: String, default: null },
     webhookId: { type: String, default: null },

@@ -29,7 +29,7 @@ function limparPrevia(texto) {
   const linhas = String(texto || '')
     .split('\n')
     .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith('-#') && !/^(<@!?\d+>\s*)+$/.test(l));
+    .filter((l) => l && !l.startsWith('-#') && !/^(<@!?(?:\d+|[0-9A-HJKMNP-TV-Z]{26})>\s*)+$/.test(l));
   return linhas.join(' ').replace(/<?https?:\/\/[^\s>]+>?/gi, 'link').replace(/<a?:[\w~]+:\d+>/g, '').replace(/\s+/g, ' ').trim();
 }
 

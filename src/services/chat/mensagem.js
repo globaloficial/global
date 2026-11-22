@@ -9,7 +9,7 @@ const { limitar } = require('../../util/conversao');
 const CONTEUDO_MAX = 2000;
 const DESCRICAO_EMBED_MAX = 4096;
 const RESERVA_MENCAO = 40;
-const ROTULO_PLATAFORMA = { fluxer: 'Fluxer', discord: 'Discord' };
+const ROTULO_PLATAFORMA = { fluxer: 'Fluxer', discord: 'Discord', stoat: 'Stoat' };
 
 function escaparMarkdown(texto) {
   return String(texto).replace(/[\\`*_~|[\]<>]/g, '\\$&');
@@ -61,9 +61,10 @@ function montarNomeWebhook(nickname, username, discriminator, rotulo, origem) {
 }
 
 function urlDoPerfil(plataforma, autorId) {
+  if (plataforma === 'stoat') return null;
   return plataforma === 'discord'
-    ? `https://discord.com/user/${autorId}`
-    : `https://fluxer.com/users/${autorId}`;
+    ? `https://discordlookup.com/user/${autorId}`
+    : `https://web.fluxer.app/users/${autorId}`;
 }
 
 async function infoMensagem(message) {
@@ -134,7 +135,7 @@ function montarConteudoWebhook(message, info, links = [], opcoes = {}) {
   const conteudo = opcoes.conteudo === undefined ? message.content : opcoes.conteudo;
   const partes = [];
   if (!info.ocultarServidor) partes.push(escaparMarkdown(info.nomeServidor));
-  if (!info.ocultarPerfil) partes.push(`[Ver perfil](<${info.perfilUrl}>)`);
+  if (!info.ocultarPerfil && info.perfilUrl) partes.push(`[Ver perfil](<${info.perfilUrl}>)`);
   const rodape = partes.length ? `-# ${partes.join(' — ')}` : '';
   const texto = [conteudo || '', ...links].filter(Boolean).join('\n');
   const limite = CONTEUDO_MAX - rodape.length - RESERVA_MENCAO;
@@ -172,7 +173,7 @@ function montarEmbedGlobal(message, info, opcoes = {}) {
   const embed = new EmbedBuilder()
     .setDescription(conteudo ? conteudo : null)
     .setColor(info.corEmbed)
-    .setAuthor({ name: textoAutorEmbed(info, opcoes), iconURL: avatarUrl, ...(info.ocultarPerfil ? {} : { url: info.perfilUrl }) });
+    .setAuthor({ name: textoAutorEmbed(info, opcoes), iconURL: avatarUrl, ...(info.ocultarPerfil || !info.perfilUrl ? {} : { url: info.perfilUrl }) });
   if (!info.ocultarServidor) {
     const footer = { text: info.nomeServidor };
     if (info.iconeServidor) footer.iconURL = info.iconeServidor;
@@ -191,7 +192,7 @@ function montarEmbedJson(message, info, opcoes = {}) {
     color: info.corEmbed,
     author: { name: limitar(textoAutorEmbed(info, opcoes), 256) }
   };
-  if (!info.ocultarPerfil) embed.author.url = info.perfilUrl;
+  if (!info.ocultarPerfil && info.perfilUrl) embed.author.url = info.perfilUrl;
   if (!info.ocultarServidor) {
     embed.footer = { text: limitar(info.nomeServidor, 2048) };
     if (info.iconeServidor) embed.footer.icon_url = info.iconeServidor;

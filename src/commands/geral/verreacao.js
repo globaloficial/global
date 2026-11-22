@@ -10,7 +10,7 @@ const { erroSimples, erro } = require('../../util/respostas');
 const COR = 0x0330EF;
 const LIMITE_LINHAS = 20;
 const BARRA = '<:reply_l:1573758153441419265><:reply_r:1573758251432935424>';
-const ROTULO_PLATAFORMA = { fluxer: 'Fluxer', discord: 'Discord' };
+const ROTULO_PLATAFORMA = { fluxer: 'Fluxer', discord: 'Discord', stoat: 'Stoat' };
 
 function etiqueta(plataforma, daPlataforma) {
   return plataforma === daPlataforma ? '' : `[${ROTULO_PLATAFORMA[plataforma] || plataforma}] `;
@@ -27,13 +27,18 @@ async function nomeDoUsuario(plataforma, usuarioId) {
 }
 
 function linkDaMensagem(plataforma, message, refId) {
+  if (plataforma === 'stoat') {
+    const app = (process.env.STOAT_APP_URL || 'https://stoat.chat').replace(/\/+$/, '');
+    return `${app}/server/${message.guildId}/channel/${message.channel.id}/${refId}`;
+  }
   const base = plataforma === 'discord' ? 'https://discord.com/channels' : 'https://fluxer.com/channels';
   return `${base}/${message.guildId}/${message.channel.id}/${refId}`;
 }
 
 function nomeComLink(nome, plataforma, usuarioId) {
   const limpo = String(nome).replace(/[[\]]/g, '');
-  return `[${limpo}](${urlDoPerfil(plataforma, usuarioId)})`;
+  const url = urlDoPerfil(plataforma, usuarioId);
+  return url ? `[${limpo}](${url})` : limpo;
 }
 
 module.exports = {

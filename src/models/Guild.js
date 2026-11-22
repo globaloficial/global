@@ -4,7 +4,7 @@ const { invalidarDestinos } = require('../lib/cacheDestinos');
 const guildSchema = new Schema(
   {
     guildId: { type: String, required: true, unique: true },
-    plataforma: { type: String, enum: ['fluxer', 'discord', null], default: null },
+    plataforma: { type: String, enum: ['fluxer', 'discord', 'stoat', null], default: null },
     canalId: { type: String, default: null },
     pausado: { type: Boolean, default: false },
     filtrarPalavroes: { type: Boolean, default: true },
