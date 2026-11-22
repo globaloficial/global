@@ -54,13 +54,17 @@ function emojiParaReacaoDiscord(emoji) {
   return par ? `${par[0]}:${par[1]}` : UNICODE_POR_NOME[encontrado[1]] || '❓';
 }
 
+const ID_MENCAO = '(?:\\d+|[0-9A-HJKMNP-TV-Z]{26})';
+const EMOJI_STOAT = /:[0-9A-HJKMNP-TV-Z]{26}:/g;
+
 function converterConteudo(texto, origem, destino) {
   if (!texto || origem === destino) return texto;
   return String(texto)
     .replace(EMOJI_PERSONALIZADO, ':$1:')
+    .replace(EMOJI_STOAT, ':emoji:')
     .replace(/<@&\d+>/g, '@cargo')
-    .replace(/<@!?\d+>/g, '@usuário')
-    .replace(/<#\d+>/g, '#canal')
+    .replace(new RegExp(`<@!?${ID_MENCAO}>`, 'g'), '@usuário')
+    .replace(new RegExp(`<#${ID_MENCAO}>`, 'g'), '#canal')
     .replace(/@(everyone|here)\b/g, '@\u200b$1');
 }
 
