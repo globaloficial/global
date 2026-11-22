@@ -43,6 +43,7 @@ function instalarFetch(manipulador) {
 function preparoDe(extra = {}) {
   const info = {
     nickname: 'Fulano',
+    discriminator: '0001',
     username: 'fulano',
     authorText: 'Fulano (@fulano)',
     corEmbed: 0x0b0b0b,
@@ -83,9 +84,9 @@ test('modo webhook envia com masquerade, nome limitado a 32 e rótulo da platafo
   assert.match(chamadas[0].url, /\/channels\/01HXC00000000000000000000C\/messages$/);
   assert.equal(chamadas[0].headers['X-Bot-Token'], 'token');
   assert.ok(chamadas[0].corpo.masquerade.name.length <= 32);
-  assert.match(chamadas[0].corpo.masquerade.name, /^\[Discord\] /);
+  assert.match(chamadas[0].corpo.masquerade.name, /^\[Discord\] .+ \(@fulano#0001\)$/);
   assert.equal(chamadas[0].corpo.masquerade.avatar, 'https://img/a.png');
-  assert.match(chamadas[0].corpo.content, /^olá mundo\n\*\*Servidor X\*\* · \[Ver perfil\]\(https:\/\/perfil\/1\)$/);
+  assert.match(chamadas[0].corpo.content, /^olá mundo\n\*Servidor X · \[Ver perfil\]\(<https:\/\/perfil\/1>\)\*$/);
 });
 
 test('modo embed envia embed com título, cor e descrição', async () => {
@@ -96,7 +97,7 @@ test('modo embed envia embed com título, cor e descrição', async () => {
   const embed = chamadas[0].corpo.embeds[0];
   assert.equal(embed.title, '[Discord] Fulano (@fulano)');
   assert.equal(embed.colour, '#0b0b0b');
-  assert.match(embed.description, /^olá mundo\n\*\*Servidor X\*\*$/);
+  assert.match(embed.description, /^olá mundo\n\*Servidor X\*$/);
   assert.equal(embed.icon_url, 'https://img/a.png');
 });
 

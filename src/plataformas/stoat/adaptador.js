@@ -14,15 +14,26 @@ const MARCADOR_MASCARA = 'masquerade';
 
 function nomeDaMascara(info, rotulo) {
   const prefixo = rotulo ? `[${rotulo}] ` : '';
-  const nome = `${prefixo}${info.nickname}`;
-  return limitar(nome, NOME_MASCARA_MAX).slice(0, NOME_MASCARA_MAX) || 'Global';
+  const tag = info.discriminator !== undefined && info.discriminator !== null && String(info.discriminator) !== '0'
+    ? `#${info.discriminator}`
+    : '';
+  const sufixo = ` (@${info.username}${tag})`;
+  const espaco = NOME_MASCARA_MAX - prefixo.length - sufixo.length;
+  if (espaco < 2) return `${prefixo}${info.nickname}`.slice(0, NOME_MASCARA_MAX) || 'Global';
+  const apelido = String(info.nickname);
+  const cortado = apelido.length > espaco ? `${apelido.slice(0, espaco - 1)}…` : apelido;
+  return `${prefixo}${cortado}${sufixo}`;
+}
+
+function escaparItalico(texto) {
+  return String(texto).replace(/[\\*_]/g, '\\$&');
 }
 
 function rodapeDe(info) {
   const partes = [];
-  if (!info.ocultarServidor) partes.push(`**${info.nomeServidor}**`);
-  if (!info.ocultarPerfil && info.perfilUrl) partes.push(`[Ver perfil](${info.perfilUrl})`);
-  return partes.join(' · ');
+  if (!info.ocultarServidor) partes.push(escaparItalico(info.nomeServidor));
+  if (!info.ocultarPerfil && info.perfilUrl) partes.push(`[Ver perfil](<${info.perfilUrl}>)`);
+  return partes.length ? `*${partes.join(' · ')}*` : '';
 }
 
 function citacao(previaReply, nomeReply) {
@@ -40,7 +51,7 @@ function textoComRodape(info, conteudo, links, extras = []) {
 
 function embedDe(info, conteudo, links, rotulo, extras = []) {
   const titulo = rotulo ? `[${rotulo}] ${info.authorText}` : info.authorText;
-  const rodape = info.ocultarServidor ? '' : `**${info.nomeServidor}**`;
+  const rodape = info.ocultarServidor ? '' : `*${escaparItalico(info.nomeServidor)}*`;
   const descricao = [...extras, conteudo || '', ...links, rodape].filter(Boolean).join('\n');
   const embed = { title: limitar(titulo, TITULO_EMBED_MAX) };
   if (descricao) embed.description = limitar(descricao, CONTEUDO_MAX);
