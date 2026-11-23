@@ -68,6 +68,15 @@ async function descreverUsuario({ _id, mensagens }) {
   }
 }
 
+function iconeDoDiscord(servidor) {
+  if (!servidor) return null;
+  if (servidor.icon) {
+    const extensao = String(servidor.icon).startsWith('a_') ? 'gif' : 'png';
+    return `https://cdn.discordapp.com/icons/${servidor.id}/${servidor.icon}.${extensao}?size=128`;
+  }
+  return obterIconeServidor(servidor);
+}
+
 function descreverServidor({ _id, mensagens }) {
   if (_id.plataforma === 'stoat') {
     const nome = nomeDoServidor(_id.id, 'stoat');
@@ -78,7 +87,7 @@ function descreverServidor({ _id, mensagens }) {
     const servidor = discordClient.guilds.cache.get(_id.id);
     return {
       nome: `${servidor ? servidor.name : 'Servidor desconhecido'}${ROTULO_DISCORD}`,
-      icone: obterIconeServidor(servidor),
+      icone: iconeDoDiscord(servidor),
       plataforma: 'discord',
       mensagens
     };
