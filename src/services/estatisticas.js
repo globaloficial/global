@@ -80,7 +80,8 @@ function iconeDoDiscord(servidor) {
 function descreverServidor({ _id, mensagens }) {
   if (_id.plataforma === 'stoat') {
     const nome = nomeDoServidor(_id.id, 'stoat');
-    return { nome: `${nome || 'Servidor desconhecido'}${ROTULO_STOAT}`, icone: null, plataforma: 'stoat', mensagens };
+    const icone = obterPlataforma('stoat').iconeServidor(_id.id);
+    return { nome: `${nome || 'Servidor desconhecido'}${ROTULO_STOAT}`, icone, plataforma: 'stoat', mensagens };
   }
 
   if (_id.plataforma === 'discord') {

@@ -203,6 +203,10 @@ function nomeServidor(guildId) {
   return servidor && servidor.name ? servidor.name : null;
 }
 
+function iconeServidor(guildId) {
+  return dados.urlIconeServidor(dados.servidorEmCache(String(guildId)));
+}
+
 function enviarAnuncio(canalId, _anuncio, embed) {
   return enviarComArquivos(canalId, { embeds: [embed] });
 }
@@ -222,6 +226,7 @@ module.exports = {
   buscarMensagem,
   buscarUsuario,
   nomeServidor,
+  iconeServidor,
   enviarAnuncio,
   enviarAviso
 };
