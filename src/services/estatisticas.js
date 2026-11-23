@@ -3,13 +3,14 @@ const { discordClient } = require('../lib/discordClient');
 const Guild = require('../models/Guild');
 const Bloqueio = require('../models/Bloqueio');
 const MensagemGlobal = require('../models/MensagemGlobal');
+const TotalMensagens = require('../models/TotalMensagens');
 const { SOMENTE_ORIGEM } = require('./perfilDados');
 const { obterIconeServidor } = require('./chat/mensagem');
 const { obterPlataforma, nomeDoServidor } = require('../plataformas');
 
 const FUSO_HORARIO = 'America/Sao_Paulo';
 const DESLOCAMENTO_FUSO = '-03:00';
-const TAMANHO_RANKING = 3;
+const TAMANHO_RANKING = 10;
 const VALIDADE_CACHE_MS = 60_000;
 
 let cache = { dados: null, geradoEm: 0 };
@@ -28,13 +29,14 @@ function inicioDoDia() {
 const ROTULO_DISCORD = ' (Discord)';
 const ROTULO_STOAT = ' (Stoat)';
 
-async function rankingPor(campo, excluidos) {
-  return MensagemGlobal.aggregate([
-    { $match: { ...SOMENTE_ORIGEM, [campo]: { $nin: excluidos } } },
-    { $group: { _id: { id: `$${campo}`, plataforma: '$plataforma' }, mensagens: { $sum: 1 } } },
-    { $sort: { mensagens: -1, '_id.id': 1 } },
-    { $limit: TAMANHO_RANKING }
-  ]);
+async function rankingPor(tipo, excluidos) {
+  const linhas = await TotalMensagens
+    .find({ tipo, id: { $nin: excluidos } })
+    .sort({ mensagens: -1, id: 1 })
+    .limit(TAMANHO_RANKING)
+    .lean();
+
+  return linhas.map((linha) => ({ _id: { id: linha.id, plataforma: linha.plataforma }, mensagens: linha.mensagens }));
 }
 
 async function descreverUsuario({ _id, mensagens }) {
@@ -92,13 +94,7 @@ function descreverServidor({ _id, mensagens }) {
 }
 
 async function contarUsuariosAtivos() {
-  const [resultado] = await MensagemGlobal.aggregate([
-    { $match: SOMENTE_ORIGEM },
-    { $group: { _id: { id: '$autorId', plataforma: '$plataforma' } } },
-    { $count: 'total' }
-  ]);
-
-  return resultado?.total ?? 0;
+  return TotalMensagens.countDocuments({ tipo: 'usuario' });
 }
 
 async function gerarEstatisticas() {
@@ -113,8 +109,8 @@ async function gerarEstatisticas() {
     Guild.countDocuments({ canalId: { $ne: null } }),
     Guild.countDocuments({ canalId: { $ne: null }, plataforma: 'discord' }),
     contarUsuariosAtivos(),
-    rankingPor('autorId', usuariosBloqueados),
-    rankingPor('guildId', servidoresBloqueados)
+    rankingPor('usuario', usuariosBloqueados),
+    rankingPor('servidor', servidoresBloqueados)
   ]);
 
   return {

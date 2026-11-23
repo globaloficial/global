@@ -5,5 +5,6 @@ module.exports = {
   Palavra: require('./Palavra'),
   MensagemGlobal: require('./MensagemGlobal'),
   Anuncio: require('./Anuncio'),
-  Migracao: require('./Migracao')
+  Migracao: require('./Migracao'),
+  TotalMensagens: require('./TotalMensagens')
 };

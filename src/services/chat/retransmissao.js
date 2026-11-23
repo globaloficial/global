@@ -1,6 +1,7 @@
 const { COOLDOWN_TEMPO } = require('../../config');
 const { emojis } = require('../../util/emojis');
 const MensagemGlobal = require('../../models/MensagemGlobal');
+const { registrarMensagem } = require('../totais');
 const { contarMensagemParaAnuncio } = require('../anuncio');
 const { tratarFalhaDestino, registrarSucessoDestino, listarDestinosAtivos } = require('../destinos');
 const { destinosDaPonte } = require('../pontes');
@@ -307,6 +308,9 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
     } catch (e) {
       log.error('DB', 'Erro ao registrar vínculos de mensagens', e);
     }
+
+    const origemLinha = linhas.find((l) => l.msgId === grupoId);
+    if (origemLinha) await registrarMensagem(origemLinha);
   }
 
   await Promise.allSettled(tratamentos);
