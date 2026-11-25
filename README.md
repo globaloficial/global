@@ -16,7 +16,7 @@
 
 <div align="center">
 
-<img src=".github/assets/readme/t-sobre.png" alt="Sobre o Global" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-sobre-light.png"><img src=".github/assets/readme/t-sobre.png" alt="Sobre o Global" height="60"></picture>
 
 <br>
 
@@ -34,7 +34,7 @@ Editar, apagar e responder também funciona entre os servidores.
 
 <div align="center">
 
-<img src=".github/assets/readme/t-funciona.png" alt="Como funciona" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-funciona-light.png"><img src=".github/assets/readme/t-funciona.png" alt="Como funciona" height="60"></picture>
 
 <br>
 
@@ -55,7 +55,7 @@ Editar, apagar e responder também funciona entre os servidores.
 
 <div align="center">
 
-<img src=".github/assets/readme/t-pontes.png" alt="Pontes privadas" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-pontes-light.png"><img src=".github/assets/readme/t-pontes.png" alt="Pontes privadas" height="60"></picture>
 
 <br>
 
@@ -81,7 +81,7 @@ As mensagens ficam só dentro da ponte.
 
 <div align="center">
 
-<img src=".github/assets/readme/t-comandos.png" alt="Comandos" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-comandos-light.png"><img src=".github/assets/readme/t-comandos.png" alt="Comandos" height="60"></picture>
 
 <br>
 
@@ -106,7 +106,7 @@ No Discord os comandos também existem como slash. É preciso ter a permissão <
 
 <div align="center">
 
-<img src=".github/assets/readme/t-instalacao.png" alt="Instalação" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-instalacao-light.png"><img src=".github/assets/readme/t-instalacao.png" alt="Instalação" height="60"></picture>
 
 <br>
 
@@ -148,7 +148,7 @@ Para o Stoat, crie um bot nas configurações da sua conta e coloque o token em 
 
 <div align="center">
 
-<img src=".github/assets/readme/t-execucao.png" alt="Execução" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-execucao-light.png"><img src=".github/assets/readme/t-execucao.png" alt="Execução" height="60"></picture>
 
 </div>
 
@@ -166,7 +166,7 @@ node --env-file=.env index.js
 
 <div align="center">
 
-<img src=".github/assets/readme/t-desenvolvimento.png" alt="Desenvolvimento" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-desenvolvimento-light.png"><img src=".github/assets/readme/t-desenvolvimento.png" alt="Desenvolvimento" height="60"></picture>
 
 </div>
 
@@ -180,7 +180,7 @@ bun run test
 
 <div align="center">
 
-<img src=".github/assets/readme/t-estrutura.png" alt="Estrutura" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-estrutura-light.png"><img src=".github/assets/readme/t-estrutura.png" alt="Estrutura" height="60"></picture>
 
 </div>
 
@@ -204,13 +204,13 @@ global/
 
 <div align="center">
 
-<img src=".github/assets/readme/t-adicionar.png" alt="Adicione ao seu servidor" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-adicionar-light.png"><img src=".github/assets/readme/t-adicionar.png" alt="Adicione ao seu servidor" height="60"></picture>
 
 <br>
 
-<a href="https://web.fluxer.app/oauth2/authorize?client_id=1562253521942745089&scope=bot&permissions=4503600164629568"><img src=".github/assets/readme/c-fluxer.png" alt="Adicionar o Global ao Fluxer" width="280"></a>&nbsp;&nbsp;
-<a href="https://discord.com/oauth2/authorize?client_id=1570965038087413971&permissions=2252764571102209&integration_type=0&scope=applications.commands+bot"><img src=".github/assets/readme/c-discord.png" alt="Adicionar o Global ao Discord" width="280"></a>&nbsp;&nbsp;
-<a href="https://stoat.chat/bot/01M7ZPBRQA2YZXZMYHFF1D65P6"><img src=".github/assets/readme/c-stoat.png" alt="Adicionar o Global ao Stoat" width="280"></a>
+<a href="https://web.fluxer.app/oauth2/authorize?client_id=1562253521942745089&scope=bot&permissions=4503600164629568"><picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/c-fluxer-light.png"><img src=".github/assets/readme/c-fluxer.png" alt="Adicionar o Global ao Fluxer" width="280"></picture></a>&nbsp;&nbsp;
+<a href="https://discord.com/oauth2/authorize?client_id=1570965038087413971&permissions=2252764571102209&integration_type=0&scope=applications.commands+bot"><picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/c-discord-light.png"><img src=".github/assets/readme/c-discord.png" alt="Adicionar o Global ao Discord" width="280"></picture></a>&nbsp;&nbsp;
+<a href="https://stoat.chat/bot/01M7ZPBRQA2YZXZMYHFF1D65P6"><picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/c-stoat-light.png"><img src=".github/assets/readme/c-stoat.png" alt="Adicionar o Global ao Stoat" width="280"></picture></a>
 
 </div>
 
@@ -218,7 +218,7 @@ global/
 
 <div align="center">
 
-<img src=".github/assets/readme/t-licenca.png" alt="Privacidade e licença" height="60">
+<picture><source media="(prefers-color-scheme: light)" srcset=".github/assets/readme/t-licenca-light.png"><img src=".github/assets/readme/t-licenca.png" alt="Privacidade e licença" height="60"></picture>
 
 <br>
 
