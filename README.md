@@ -6,9 +6,6 @@
 <br>
 
 [![Site](https://img.shields.io/badge/site-globalbot.site-0330ef?style=flat-square&labelColor=0B0B0B)](https://globalbot.site)
-[![Fluxer](https://img.shields.io/badge/Fluxer-adicionar-0330ef?style=flat-square&labelColor=0B0B0B)](https://web.fluxer.app/oauth2/authorize?client_id=1562253521942745089&scope=bot&permissions=4503600164629568)
-[![Discord](https://img.shields.io/badge/Discord-adicionar-0330ef?style=flat-square&labelColor=0B0B0B)](https://discord.com/oauth2/authorize?client_id=1570965038087413971&permissions=2252764571102209&integration_type=0&scope=applications.commands+bot)
-[![Stoat](https://img.shields.io/badge/Stoat-adicionar-0330ef?style=flat-square&labelColor=0B0B0B)](https://stoat.chat/bot/01M7ZPBRQA2YZXZMYHFF1D65P6)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-0330ef?style=flat-square&labelColor=0B0B0B&logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-0330ef?style=flat-square&labelColor=0B0B0B&logo=mongodb&logoColor=white)](https://www.mongodb.com)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-0330ef?style=flat-square&labelColor=0B0B0B)](LICENSE)
@@ -39,11 +36,6 @@ Editar, apagar e responder também funciona entre os servidores.
 
 <img src=".github/assets/readme/t-funciona.png" alt="Como funciona" height="60">
 
-<br>
-
-<img src=".github/assets/readme/fluxo.png" alt="Mensagem, filtros, MongoDB, conversão, fila e webhook" width="836">
-
-<br>
 <br>
 
 | Etapa | O que acontece |
