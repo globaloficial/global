@@ -228,6 +228,6 @@ Distribuído sob a <a href="LICENSE">PolyForm Noncommercial 1.0.0</a>.
 <br>
 
 [![Criado por](https://img.shields.io/badge/criado%20por-xMqR-0330ef?style=flat-square&labelColor=0B0B0B)](https://github.com/xMqRs)
-[![Apoio](https://img.shields.io/badge/apoio-Joao-0330ef?style=flat-square&labelColor=0B0B0B)](https://github.com/xMqRs)
+[![Apoio](https://img.shields.io/badge/apoio-Joao-0330ef?style=flat-square&labelColor=0B0B0B)](https://github.com/j6aoo)
 
 </div>
