@@ -6,6 +6,7 @@ const { obterPlataforma } = require('../../plataformas');
 const { previaDaMensagem } = require('../../services/chat/retransmissao');
 const { urlDoPerfil } = require('../../services/chat/mensagem');
 const { erroSimples, erro } = require('../../util/respostas');
+const { linkDaMensagem } = require('../../util/linkMensagem');
 
 const COR = 0x0330EF;
 const LIMITE_LINHAS = 20;
@@ -24,15 +25,6 @@ async function nomeDoUsuario(plataforma, usuarioId) {
   } catch (_) {
     return 'Usuário desconhecido';
   }
-}
-
-function linkDaMensagem(plataforma, message, refId) {
-  if (plataforma === 'stoat') {
-    const app = (process.env.STOAT_APP_URL || 'https://stoat.chat').replace(/\/+$/, '');
-    return `${app}/server/${message.guildId}/channel/${message.channel.id}/${refId}`;
-  }
-  const base = plataforma === 'discord' ? 'https://discord.com/channels' : 'https://fluxer.com/channels';
-  return `${base}/${message.guildId}/${message.channel.id}/${refId}`;
 }
 
 function nomeComLink(nome, plataforma, usuarioId) {

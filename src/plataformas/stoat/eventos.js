@@ -89,6 +89,7 @@ async function dadosDaReacao(evento) {
   return {
     msgId: evento.id,
     emoji: emojiDaReacao(evento.emoji_id),
+    emojiId: evento.emoji_id,
     usuarioId: evento.user_id,
     plataforma: 'stoat',
     bot: evento.user_id === dados.meuId() || Boolean(usuario && usuario.bot)

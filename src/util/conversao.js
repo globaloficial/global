@@ -3,6 +3,7 @@ const { EMOJIS } = require('../plataformas/discord/emojis');
 const UNICODE_POR_NOME = {
   closecirclefill: '❌',
   checkboxcirclefill: '✅',
+  restartfill: '🔁',
   checkboxfill: '☑️',
   togglefill: '🟢',
   toggleline: '⚪',

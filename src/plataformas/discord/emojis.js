@@ -1,6 +1,7 @@
 const EMOJIS = {
   checkboxcirclefill: ['checkboxcirclefill', '1571357853590229042'],
   closecirclefill: ['closecirclefill', '1571357854995189881'],
+  restartfill: ['restartfill', '1576011945847292036'],
   information2fill: ['information2fill', '1571357856509333524'],
   forbidline: ['forbidfill', '1571357858082328646'],
   errorwarningfill: ['errorwarningfill', '1571357860049195170'],

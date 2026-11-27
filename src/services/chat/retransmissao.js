@@ -18,9 +18,9 @@ const { obterPlataforma, plataformaDaMensagem, apagarCopia } = require('../../pl
 const { carregarCredenciais } = require('../webhooks');
 const { ErroSemWebhook } = require('../entrega/semWebhook');
 const { avisarSemWebhook } = require('../avisoWebhook');
-const { limitar } = require('../../util/conversao');
 const { infoMensagem, semInfoDoServidor } = require('./mensagem');
 const { prepararAnexos } = require('./anexos');
+const { marcarBloqueada } = require('../cooldownReenvio');
 
 const cooldownUsuarios = new Map();
 
@@ -128,7 +128,8 @@ function cancelarRetransmissao(grupoId) {
   return true;
 }
 
-async function retransmitirMensagemGlobal(message, ponte = null) {
+async function retransmitirMensagemGlobal(message, ponte = null, opcoes = {}) {
+  const reenvio = Boolean(opcoes && opcoes.reenvio);
   const autor = message.author;
   const agora = Date.now();
   const origem = plataformaDaMensagem(message);
@@ -158,7 +159,7 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
 
   if (!staff && !ponte) {
     const cfgOrigem = await configDaGuild(guildIdOrigem);
-    const motivoFiltro = motivoFiltroGuild(analise, cfgOrigem) || verificarSpam(autor.id, message.content);
+    const motivoFiltro = motivoFiltroGuild(analise, cfgOrigem) || (reenvio ? null : verificarSpam(autor.id, message.content));
     if (motivoFiltro) {
       await bloquearPorFiltro(message, motivoFiltro);
       return;
@@ -166,20 +167,20 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   }
 
   if (!staff && ponte) {
-    const motivoSpam = verificarSpam(autor.id, message.content);
+    const motivoSpam = reenvio ? null : verificarSpam(autor.id, message.content);
     if (motivoSpam) {
       await bloquearPorFiltro(message, motivoSpam);
       return;
     }
   }
 
-  if (cooldownUsuarios.has(autor.id)) {
+  if (!reenvio && cooldownUsuarios.has(autor.id)) {
     const tempoDecorrido = agora - cooldownUsuarios.get(autor.id);
     if (tempoDecorrido < COOLDOWN_TEMPO) {
       const tempoRestante = ((COOLDOWN_TEMPO - tempoDecorrido) / 1000).toFixed(1);
       log.warn('COOLDOWN', `${descreverContexto(message)} bloqueado (${tempoRestante}s restantes)`);
       try {
-        await reagir(message, [emojis.error]);
+        await marcarBloqueada(message, () => retransmitirMensagemGlobal(message, ponte, { reenvio: true }));
       } catch (e) {
         log.error('COOLDOWN', 'Erro ao reagir à mensagem bloqueada', e);
       }

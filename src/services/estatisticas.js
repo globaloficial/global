@@ -77,16 +77,19 @@ function iconeDoDiscord(servidor) {
   return obterIconeServidor(servidor);
 }
 
+function iconeDoStoat(guildId) {
+  try {
+    const adaptador = obterPlataforma('stoat');
+    return adaptador && adaptador.iconeServidor ? adaptador.iconeServidor(guildId) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 function descreverServidor({ _id, mensagens }) {
   if (_id.plataforma === 'stoat') {
     const nome = nomeDoServidor(_id.id, 'stoat');
-    const adaptadorStoat = obterPlataforma('stoat');
-    let icone = null;
-    try {
-      icone = adaptadorStoat && adaptadorStoat.iconeServidor ? adaptadorStoat.iconeServidor(_id.id) : null;
-    } catch (_) {
-      icone = null;
-    }
+    const icone = iconeDoStoat(_id.id);
     return { nome: `${nome || 'Servidor desconhecido'}${ROTULO_STOAT}`, icone, plataforma: 'stoat', mensagens };
   }
 

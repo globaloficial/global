@@ -11,8 +11,12 @@ const REGRA_ERRO = /error|close|forbid|warning/i;
 const REGRA_SUCESSO = /check|success/i;
 const EMOJI_UNICODE = /^(?:\p{Extended_Pictographic}|\p{Regional_Indicator}|[0-9#*]️?⃣)/u;
 
+const EMOJI_PERSONALIZADO_STOAT = /^:([0-9A-HJKMNP-TV-Z]{26}):$/;
+
 function emojiDaReacao(emoji) {
   const texto = String(emoji || '');
+  const personalizado = texto.match(EMOJI_PERSONALIZADO_STOAT);
+  if (personalizado) return personalizado[1];
   if (EMOJI_UNICODE.test(texto)) return texto;
   if (REGRA_ERRO.test(texto)) return '❌';
   if (REGRA_SUCESSO.test(texto)) return '✅';
@@ -151,6 +155,11 @@ async function criarMensagemCompat(raw) {
       const unicode = emojiDaReacao(emoji);
       if (!unicode) return null;
       return api.reagirMensagem(raw.channel, raw._id, unicode);
+    },
+    desreagir: async (emoji) => {
+      const alvo = emojiDaReacao(emoji);
+      if (!alvo) return null;
+      return api.removerReacao(raw.channel, raw._id, alvo);
     },
     delete: () => api.apagarMensagem(raw.channel, raw._id),
     podeGerenciarCanais: () => podeGerenciar(servidor, raw.author),

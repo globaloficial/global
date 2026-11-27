@@ -2,6 +2,7 @@ const MensagemGlobal = require('../models/MensagemGlobal');
 const ReacaoGlobal = require('../models/ReacaoGlobal');
 const { obterPlataforma } = require('../plataformas');
 const { bloqueioAtivo } = require('./entrega/fila');
+const { tratarReacaoBloqueada } = require('./cooldownReenvio');
 const { log, errMsg } = require('../util/logger');
 const { logRateLimit } = require('../util/ratelimit');
 
@@ -65,8 +66,10 @@ async function removerReacao({ msgId, emoji, usuarioId }) {
   await ReacaoGlobal.deleteMany({ grupoId: linha.grupoId, usuarioId: String(usuarioId), emoji: unicode });
 }
 
-async function espelharReacao({ msgId, emoji, usuarioId, plataforma, bot }) {
-  if (bot || bloqueioAtivo()) return 0;
+async function espelharReacao({ msgId, emoji, emojiId, usuarioId, plataforma, bot }) {
+  if (bot) return 0;
+  if (await tratarReacaoBloqueada({ msgId, emoji, emojiId, usuarioId, plataforma })) return 0;
+  if (bloqueioAtivo()) return 0;
   const registro = await registrarReacao({ msgId, emoji, usuarioId, plataforma });
   if (!registro) return 0;
 

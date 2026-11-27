@@ -102,6 +102,11 @@ function criarMensagemCompat(raw) {
     },
     reply: (conteudo) => raw.reply(normalizarResposta(conteudo)),
     react: (emoji) => raw.react(emojiParaReacaoDiscord(emoji)),
+    desreagir: async (emoji) => {
+      const alvo = String(emojiParaReacaoDiscord(emoji));
+      const reacao = raw.reactions.cache.find((r) => alvo === (r.emoji.id ? `${r.emoji.name}:${r.emoji.id}` : r.emoji.name));
+      return reacao ? reacao.users.remove(raw.client.user.id) : null;
+    },
     delete: () => raw.delete(),
     podeGerenciarCanais: async () => podeGerenciar(membro && membro.permissions, raw.author.id),
     bloqueioAtivo: () => fila.bloqueioAtivo()
