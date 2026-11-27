@@ -66,7 +66,7 @@ async function removerReacao({ msgId, emoji, usuarioId }) {
   await ReacaoGlobal.deleteMany({ grupoId: linha.grupoId, usuarioId: String(usuarioId), emoji: unicode });
 }
 
-async function espelharReacao({ msgId, emoji, emojiId, usuarioId, plataforma, bot }) {
+async function espelharReacao({ msgId, emoji, emojiId = null, usuarioId, plataforma, bot }) {
   if (bot) return 0;
   if (await tratarReacaoBloqueada({ msgId, emoji, emojiId, usuarioId, plataforma })) return 0;
   if (bloqueioAtivo()) return 0;
