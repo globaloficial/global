@@ -83,42 +83,6 @@ async function destinosDaPonteAtivos(ponte, guildIdOrigem) {
   return destinosDaPonte(ponte, guildIdOrigem).filter((d) => !bloqueados.has(d.guildId));
 }
 
-const GRACA_PLATAFORMA_MS = 5000;
-const ATRASADO = Symbol('atrasado');
-
-async function aguardarEntregas(entregas, plataformaDe) {
-  const estados = entregas.map((entrega) => {
-    const estado = { pronto: false };
-    entrega.then(
-      (value) => Object.assign(estado, { pronto: true, status: 'fulfilled', value }),
-      (reason) => Object.assign(estado, { pronto: true, status: 'rejected', reason })
-    );
-    return estado;
-  });
-
-  const plataformas = [...new Set(entregas.map((_, i) => plataformaDe(i)))];
-  const concluidas = new Map(plataformas.map((pl) => [
-    pl,
-    Promise.allSettled(entregas.filter((_, i) => plataformaDe(i) === pl))
-  ]));
-
-  await Promise.all(plataformas.map(async (pl) => {
-    const demais = plataformas.filter((outra) => outra !== pl).map((outra) => concluidas.get(outra));
-    if (demais.length === 0) {
-      await concluidas.get(pl);
-      return;
-    }
-    let timer;
-    const limite = Promise.all(demais).then(() => new Promise((resolve) => {
-      timer = setTimeout(resolve, GRACA_PLATAFORMA_MS);
-    }));
-    await Promise.race([concluidas.get(pl), limite]);
-    clearTimeout(timer);
-  }));
-
-  return estados.map((e) => (e.pronto ? e : { status: 'fulfilled', value: ATRASADO }));
-}
-
 const retransmissoesEmAndamento = new Map();
 
 function cancelarRetransmissao(grupoId) {
@@ -251,65 +215,40 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   const estado = { cancelado: false };
   retransmissoesEmAndamento.set(grupoId, estado);
 
-  const entregas = destinos.map((destino) => {
-    const adaptador = obterPlataforma(destino.plataforma);
+  let resultados;
+  try {
+    resultados = await Promise.allSettled(destinos.map((destino) => {
+      const adaptador = obterPlataforma(destino.plataforma);
 
-    const mencao = (origemReply
-      && destino.guildId === origemReply.guildId
-      && origemReply.autorId !== String(autor.id))
-      ? `<@${origemReply.autorId}>`
-      : null;
+      const mencao = (origemReply
+        && destino.guildId === origemReply.guildId
+        && origemReply.autorId !== String(autor.id))
+        ? `<@${origemReply.autorId}>`
+        : null;
 
-    const alvoReply = grupoRespondido ? (copiasDoRespondido.get(destino.guildId) || null) : null;
+      const alvoReply = grupoRespondido ? (copiasDoRespondido.get(destino.guildId) || null) : null;
 
-    return adaptador.enfileirar(destino.canalId, async () => {
-      if (estado.cancelado) return null;
+      return adaptador.enfileirar(destino.canalId, async () => {
+        if (estado.cancelado) return null;
 
-      return adaptador.entregar(destino, {
-        message,
-        info,
-        preparo: preparoDe(adaptador.nome, !ponte && Boolean(destino.ocultarInfoRecebida)),
-        mencao,
-        origemReply,
-        alvoReply,
-        previaReply,
-        nomeReply
+        return adaptador.entregar(destino, {
+          message,
+          info,
+          preparo: preparoDe(adaptador.nome, !ponte && Boolean(destino.ocultarInfoRecebida)),
+          mencao,
+          origemReply,
+          alvoReply,
+          previaReply,
+          nomeReply
+        });
       });
-    });
-  });
-
-  const resultados = await aguardarEntregas(entregas, (i) => destinos[i].plataforma || 'fluxer');
-  Promise.allSettled(entregas).finally(() => retransmissoesEmAndamento.delete(grupoId));
+    }));
+  } finally {
+    retransmissoesEmAndamento.delete(grupoId);
+  }
 
   const criadoEm = Date.now();
   const linhas = [];
-
-  const acompanharAtrasada = (entrega, destino) => {
-    entrega.then(async (valor) => {
-      if (!valor || !valor.msgId) return;
-      const linha = {
-        grupoId,
-        guildId: valor.guildId,
-        plataforma: destino.plataforma || 'fluxer',
-        canalId: valor.canalId,
-        msgId: String(valor.msgId),
-        autorId: String(autor.id),
-        webhookId: valor.webhookId || null,
-        ponteId,
-        criadoEm
-      };
-      if (estado.cancelado) {
-        const credenciais = await carregarCredenciais([linha]);
-        await apagarCopia(linha, credenciais);
-        return;
-      }
-      await MensagemGlobal.updateOne({ msgId: linha.msgId }, { $setOnInsert: linha }, { upsert: true });
-      if (!ponte) registrarSucessoDestino(destino.guildId);
-    }).catch(async (e) => {
-      log.warn('GLOBAL', `Envio atrasado falhou no servidor ${destino.guildId} (msg ${message.id}): ${errMsg(e)}`);
-      if (!ponte && !(e instanceof ErroSemWebhook)) await tratarFalhaDestino(destino.guildId, e).catch(() => {});
-    });
-  };
 
   if (message.id && message.channel) {
     linhas.push({ grupoId, guildId: guildIdOrigem, plataforma: origem, canalId: String(message.channel.id), msgId: String(message.id), autorId: String(autor.id), ponteId, criadoEm });
@@ -320,12 +259,8 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   const falhas = [];
   const tratamentos = [];
   let cancelados = 0;
-  let atrasados = 0;
   resultados.forEach((r, i) => {
-    if (r.status === 'fulfilled' && r.value === ATRASADO) {
-      atrasados++;
-      acompanharAtrasada(entregas[i], destinos[i]);
-    } else if (r.status === 'fulfilled' && r.value === null) {
+    if (r.status === 'fulfilled' && r.value === null) {
       cancelados++;
     } else if (r.status === 'fulfilled' && r.value.msgId) {
       ok++;
@@ -385,7 +320,6 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
     ponte ? 'PONTE' : 'GLOBAL',
     `msg ${message.id} | ${descreverContexto(message)} | ` +
     `${ok}/${destinos.length} servidor(es) em ${ms}ms` +
-    (atrasados > 0 ? ` (${atrasados} ainda enviando)` : '') +
     (filtrados > 0 ? ` (${filtrados} com filtro ativo não receberam)` : '') +
     (refId ? ` | reply a ${refId} (${grupoRespondido ? `${replies} reply(s) aplicado(s)` : 'mensagem não rastreada, enviado sem reply'})` : '') +
     (urlMidia ? ' | com mídia' : '')
@@ -397,4 +331,4 @@ async function retransmitirMensagemGlobal(message, ponte = null) {
   if (!ponte) await contarMensagemParaAnuncio();
 }
 
-module.exports = { retransmitirMensagemGlobal, cancelarRetransmissao, limparPrevia, encurtarPrevia, previaDaMensagem, aguardarEntregas, ATRASADO };
+module.exports = { retransmitirMensagemGlobal, cancelarRetransmissao, limparPrevia, encurtarPrevia, previaDaMensagem };
