@@ -106,7 +106,7 @@ async function reenviarMensagem(chave, entrada) {
   await reagir(message, [emojiDe(plataforma, 'sucesso')]);
 }
 
-async function tratarReacaoBloqueada({ msgId, emoji, emojiId, usuarioId, plataforma }) {
+async function tratarReacaoBloqueada({ msgId, emoji, emojiId = null, usuarioId, plataforma }) {
   const chave = `${plataforma || 'fluxer'}:${msgId}`;
   const entrada = pendentes.get(chave);
   if (!entrada) return false;
