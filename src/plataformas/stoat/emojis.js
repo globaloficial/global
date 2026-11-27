@@ -28,7 +28,8 @@ const IDS = {
   information2fill: '01M82GBT86BHY5416M1ZA9YS9Q',
   errorwarningfill: '01M82GC9G9V1PCJ9XG59768028',
   checkboxcirclefill: '01M82GD5929PMVM83NJ9M9JSBZ',
-  closecirclefill: '01M82GCPKH9VGR4CC45JP6CFCX'
+  closecirclefill: '01M82GCPKH9VGR4CC45JP6CFCX',
+  restartfill: '01M8FMAMJ2MDY49SS1PKZTEPCA'
 };
 
 const PADRAO = /<a?:([\w~]+):\d+>/g;

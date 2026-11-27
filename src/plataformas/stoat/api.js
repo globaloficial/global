@@ -145,6 +145,9 @@ const apagarMensagem = (canalId, msgId) =>
 const reagirMensagem = (canalId, msgId, emoji) =>
   requisitar('PUT', `/channels/${encodeURIComponent(canalId)}/messages/${encodeURIComponent(msgId)}/reactions/${encodeURIComponent(emoji)}`);
 
+const removerReacao = (canalId, msgId, emoji) =>
+  requisitar('DELETE', `/channels/${encodeURIComponent(canalId)}/messages/${encodeURIComponent(msgId)}/reactions/${encodeURIComponent(emoji)}`);
+
 async function enviarArquivo(dados, nome) {
   const autumn = urlDosArquivos();
   if (!autumn) throw new Error('Servidor de arquivos do Stoat indisponível');
@@ -180,5 +183,6 @@ module.exports = {
   editarMensagem,
   apagarMensagem,
   reagirMensagem,
+  removerReacao,
   enviarArquivo
 };
