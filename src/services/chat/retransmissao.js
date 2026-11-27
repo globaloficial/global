@@ -18,7 +18,6 @@ const { obterPlataforma, plataformaDaMensagem, apagarCopia } = require('../../pl
 const { carregarCredenciais } = require('../webhooks');
 const { ErroSemWebhook } = require('../entrega/semWebhook');
 const { avisarSemWebhook } = require('../avisoWebhook');
-const { limitar } = require('../../util/conversao');
 const { infoMensagem, semInfoDoServidor } = require('./mensagem');
 const { prepararAnexos } = require('./anexos');
 const { marcarBloqueada } = require('../cooldownReenvio');
